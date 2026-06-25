@@ -17,8 +17,26 @@ public enum AppPaths {
         supportDirectory.appendingPathComponent("snapshot.json")
     }
 
+    public static func snapshotFile(for provider: UsageProvider) -> URL {
+        switch provider {
+        case .claude:
+            return supportDirectory.appendingPathComponent("snapshot-claude.json")
+        case .codex:
+            return supportDirectory.appendingPathComponent("snapshot-codex.json")
+        }
+    }
+
     public static var petStateFile: URL {
         supportDirectory.appendingPathComponent("pet-state.json")
+    }
+
+    public static func petStateFile(for provider: UsageProvider) -> URL {
+        switch provider {
+        case .claude:
+            return supportDirectory.appendingPathComponent("pet-state-claude.json")
+        case .codex:
+            return supportDirectory.appendingPathComponent("pet-state-codex.json")
+        }
     }
 
     public static func ensureSupportDirectory() throws {

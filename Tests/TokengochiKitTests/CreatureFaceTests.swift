@@ -2,9 +2,10 @@ import Testing
 @testable import TokengochiKit
 
 @Suite struct CreatureFaceTests {
-    @Test func classicBodyHasFeetClaudeDoesNot() {
+    @Test func classicBodyHasFeetProviderSkinsDoNot() {
         #expect(CreatureFace.bodyRows(skin: .classic).count == 14)
         #expect(CreatureFace.bodyRows(skin: .claude).count == 12)
+        #expect(CreatureFace.bodyRows(skin: .codex).count == 12)
     }
 
     @Test func sickMouthDiffersFromHappyMouth() {
@@ -21,8 +22,9 @@ import Testing
         #expect(frown == [FaceCell(5, 8), FaceCell(6, 7), FaceCell(7, 7), FaceCell(8, 7), FaceCell(9, 7), FaceCell(10, 8)])
     }
 
-    @Test func claudeSkinHasNoMouth() {
+    @Test func providerSkinsHaveNoMouth() {
         #expect(CreatureFace.mouthCells(skin: .claude, mood: .sick).isEmpty)
+        #expect(CreatureFace.mouthCells(skin: .codex, mood: .sick).isEmpty)
     }
 
     @Test func overfedClosesEyesLikeBlink() {

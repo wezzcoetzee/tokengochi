@@ -65,7 +65,7 @@ func snapshot(from usage: [String: Any]) -> UsageSnapshot {
         weeklyPct: sevenDay.pct,
         sessionResetsAt: fiveHour.resetsAt,
         weeklyResetsAt: sevenDay.resetsAt,
-        into: UsageSnapshot.load(),
+        into: UsageSnapshot.load(provider: .claude),
         at: Date().timeIntervalSince1970
     )
 }
@@ -73,7 +73,7 @@ func snapshot(from usage: [String: Any]) -> UsageSnapshot {
 func pollOnce() throws {
     let token = try readAccessToken()
     let usage = try fetchUsage(token: token)
-    try snapshot(from: usage).save()
+    try snapshot(from: usage).save(provider: .claude)
 }
 
 let arguments = CommandLine.arguments

@@ -31,7 +31,7 @@ public enum CreatureFace {
         "..####....####.."
     ]
 
-    private static let claudeBody = [
+    private static let providerBody = [
         "................",
         "..############..",
         ".##############.",
@@ -46,14 +46,48 @@ public enum CreatureFace {
         ".##..##..##..##."
     ]
 
+    // Cloud shape with two prominent top bumps, matching the Codex icon silhouette
+    private static let codexBody = [
+        "....####.###....",
+        "...######.####..",
+        "..############..",
+        ".##############.",
+        "################",
+        "################",
+        "################",
+        "################",
+        "################",
+        ".##############.",
+        "..############..",
+        "....########...."
+    ]
+
     public static func bodyRows(skin: PetSkin) -> [String] {
         switch skin {
         case .classic: return classicBody
-        case .claude: return claudeBody
+        case .claude: return providerBody
+        case .codex: return codexBody
         }
     }
 
     public static func eyeCells(skin: PetSkin, mood: Mood, blink: Bool) -> [FaceCell] {
+        if skin == .codex {
+            // `>` chevron: tip centered at rows 5-6 (vertical center of 12-row body)
+            // `-` dash: sits at rows 6-7, one row below the `>` tip, matching the icon
+            let chevron: [FaceCell] = [
+                FaceCell(2, 3), FaceCell(3, 3),
+                FaceCell(3, 4), FaceCell(4, 4),
+                FaceCell(4, 5), FaceCell(5, 5),
+                FaceCell(4, 6), FaceCell(5, 6),
+                FaceCell(3, 7), FaceCell(4, 7),
+                FaceCell(2, 8), FaceCell(3, 8)
+            ]
+            let dash: [FaceCell] = [
+                FaceCell(8, 6), FaceCell(9, 6), FaceCell(10, 6), FaceCell(11, 6),
+                FaceCell(8, 7), FaceCell(9, 7), FaceCell(10, 7), FaceCell(11, 7)
+            ]
+            return chevron + dash
+        }
         if skin == .claude {
             if blink {
                 return [FaceCell(4, 6), FaceCell(5, 6), FaceCell(10, 6), FaceCell(11, 6)]

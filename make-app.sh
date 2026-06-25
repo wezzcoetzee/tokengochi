@@ -21,6 +21,7 @@ mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources" "$CONTENTS/Helpers"
 cp "$BUILD/$APP_NAME"        "$CONTENTS/MacOS/$APP_NAME"
 cp "$BUILD/TokengochiWriter" "$CONTENTS/Helpers/TokengochiWriter"
 cp "$BUILD/TokengochiPoller" "$CONTENTS/Helpers/TokengochiPoller"
+cp "$BUILD/TokengochiCodexWriter" "$CONTENTS/Helpers/TokengochiCodexWriter"
 
 if [[ ! -f "$ROOT/AppIcon.icns" && -f "$ROOT/AppIcon.png" ]]; then
   echo "▸ Generating AppIcon.icns from AppIcon.png…"
@@ -65,9 +66,13 @@ cat > "$CONTENTS/Info.plist" <<PLIST
 PLIST
 
 echo "▸ Ad-hoc signing…"
-xattr -cr "$APP"
+xattr -cr "$CONTENTS/Helpers/TokengochiWriter"
 codesign --force --sign - "$CONTENTS/Helpers/TokengochiWriter"
+xattr -cr "$CONTENTS/Helpers/TokengochiPoller"
 codesign --force --sign - "$CONTENTS/Helpers/TokengochiPoller"
+xattr -cr "$CONTENTS/Helpers/TokengochiCodexWriter"
+codesign --force --sign - "$CONTENTS/Helpers/TokengochiCodexWriter"
+xattr -cr "$APP"
 codesign --force --sign - "$APP"
 
 echo "▸ Zipping…"

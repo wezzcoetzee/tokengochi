@@ -34,7 +34,7 @@ struct HelpView: View {
     }
 
     private var intro: some View {
-        Text("Tokengochi turns your Claude usage into a pet. Using more is good. The only failure is wasting a window.")
+        Text("Tokengochi turns your coding-agent usage into a pet. Using more is good. The only failure is wasting a window.")
             .font(.caption)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)

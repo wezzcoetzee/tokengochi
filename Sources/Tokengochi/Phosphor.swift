@@ -17,6 +17,13 @@ enum Phosphor {
     static let lowBatteryBrown = Color(red: 0.45, green: 0.28, blue: 0.22)
     static let screenOffBrown = Color(red: 0.16, green: 0.09, blue: 0.06)
 
+    static let codexBlue = Color(red: 0.42, green: 0.54, blue: 0.90)
+    static let fadedCodexBlue = Color(red: 0.62, green: 0.72, blue: 0.96)
+    static let overfedCodexTeal = Color(red: 0.35, green: 0.66, blue: 0.90)
+    static let queasyCodexNavy = Color(red: 0.28, green: 0.36, blue: 0.72)
+    static let lowBatteryCodexBlue = Color(red: 0.26, green: 0.36, blue: 0.62)
+    static let screenOffCodexBlue = Color(red: 0.06, green: 0.09, blue: 0.22)
+
     static func body(for mood: Mood, skin: PetSkin) -> Color {
         switch skin {
         case .classic:
@@ -35,6 +42,14 @@ enum Phosphor {
             case .noData: return lowBatteryBrown
             case .starving, .thriving, .lonely: return terracotta
             }
+        case .codex:
+            switch mood {
+            case .sick: return queasyCodexNavy
+            case .overfed: return overfedCodexTeal
+            case .okay: return fadedCodexBlue
+            case .noData: return lowBatteryCodexBlue
+            case .starving, .thriving, .lonely: return codexBlue
+            }
         }
     }
 
@@ -42,6 +57,7 @@ enum Phosphor {
         switch skin {
         case .classic: return screenOffGreen
         case .claude: return screenOffBrown
+        case .codex: return screenOffCodexBlue
         }
     }
 
@@ -49,6 +65,7 @@ enum Phosphor {
         switch skin {
         case .classic: return dotMatrixGreen
         case .claude: return terracotta
+        case .codex: return codexBlue
         }
     }
 
@@ -56,6 +73,7 @@ enum Phosphor {
         switch skin {
         case .classic: return fadedPhosphor
         case .claude: return fadedTerracotta
+        case .codex: return fadedCodexBlue
         }
     }
 }
