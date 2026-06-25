@@ -13,5 +13,5 @@ DerivedData/
 # Distribution artifacts
 dist/
 
-# Tool directories
-.impeccable/
+# Plans
+/plans

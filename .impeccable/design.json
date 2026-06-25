@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-23T00:00:00Z",
+  "title": "Design System: Tokengochi",
+  "extensions": {
+    "colorMeta": {
+      "dot-matrix-green": {
+        "role": "primary",
+        "displayName": "Dot-Matrix Green",
+        "canonical": "oklch(78% 0.17 118)",
+        "tonalRamp": ["oklch(20% 0.06 118)", "oklch(30% 0.09 118)", "oklch(40% 0.12 118)", "oklch(50% 0.14 118)", "oklch(60% 0.16 118)", "oklch(70% 0.17 118)", "oklch(82% 0.16 118)", "oklch(92% 0.10 118)"]
+      },
+      "screen-off-green": {
+        "role": "neutral",
+        "displayName": "Screen-Off Green",
+        "canonical": "oklch(30% 0.07 140)",
+        "tonalRamp": ["oklch(15% 0.04 140)", "oklch(22% 0.06 140)", "oklch(30% 0.07 140)", "oklch(40% 0.08 140)", "oklch(50% 0.09 140)", "oklch(62% 0.10 140)", "oklch(78% 0.08 140)", "oklch(92% 0.04 140)"]
+      },
+      "faded-phosphor": {
+        "role": "secondary",
+        "displayName": "Faded Phosphor",
+        "canonical": "oklch(87% 0.15 115)",
+        "tonalRamp": ["oklch(25% 0.06 115)", "oklch(36% 0.09 115)", "oklch(47% 0.11 115)", "oklch(58% 0.13 115)", "oklch(69% 0.14 115)", "oklch(80% 0.15 115)", "oklch(88% 0.14 115)", "oklch(95% 0.08 115)"]
+      },
+      "overfed-amber": {
+        "role": "secondary",
+        "displayName": "Overfed Amber",
+        "canonical": "oklch(85% 0.16 85)",
+        "tonalRamp": ["oklch(28% 0.07 85)", "oklch(40% 0.10 85)", "oklch(52% 0.13 85)", "oklch(63% 0.15 85)", "oklch(74% 0.16 85)", "oklch(85% 0.16 85)", "oklch(91% 0.13 85)", "oklch(96% 0.07 85)"]
+      },
+      "queasy-orange": {
+        "role": "secondary",
+        "displayName": "Queasy Orange",
+        "canonical": "oklch(74% 0.15 45)",
+        "tonalRamp": ["oklch(28% 0.07 45)", "oklch(40% 0.10 45)", "oklch(50% 0.13 45)", "oklch(60% 0.15 45)", "oklch(70% 0.16 45)", "oklch(78% 0.15 45)", "oklch(87% 0.11 45)", "oklch(94% 0.06 45)"]
+      },
+      "low-battery-green": {
+        "role": "neutral",
+        "displayName": "Low-Battery Green",
+        "canonical": "oklch(52% 0.11 120)",
+        "tonalRamp": ["oklch(20% 0.05 120)", "oklch(30% 0.07 120)", "oklch(40% 0.09 120)", "oklch(50% 0.10 120)", "oklch(58% 0.11 120)", "oklch(70% 0.11 120)", "oklch(82% 0.08 120)", "oklch(92% 0.04 120)"]
+      }
+    },
+    "typographyMeta": {
+      "title": { "displayName": "Chrome Title", "purpose": "The single sans-serif heading on the popover. The only system-sans text in the product." },
+      "body": { "displayName": "Data", "purpose": "Stat-row labels, percentages, and the health/mess line. Monospace data layer." },
+      "label": { "displayName": "LCD Readout", "purpose": "In-screen meters and the uppercase mood word. Bold tracked monospace, etched into the phosphor." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "reduce-motion-default", "value": "instant state change", "purpose": "Resting state is still. When Reduce Motion is on, all reactions collapse to an immediate state swap with no transition." },
+      { "name": "milestone-ease (planned, Phase 2)", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "ease-out-expo for the notch milestone reaction. Rare punctuation only; never ambient idle motion." }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "LCD Screen",
+      "kind": "custom",
+      "refersTo": "lcd-screen",
+      "description": "The fictional 90s handheld screen that holds the entire creature experience. Phosphor palette, scanlines, dark bezel.",
+      "html": "<div class=\"ds-lcd-screen\"><div class=\"ds-lcd-meters\"><span>HUN ████░░░░░░</span><span>HAP ██████░░░░</span></div><div class=\"ds-lcd-creature\"><span class=\"ds-eye\"></span><span class=\"ds-eye\"></span><span class=\"ds-mouth\"></span></div><div class=\"ds-lcd-mood\">OKAY</div></div>",
+      "css": ".ds-lcd-screen { position: relative; width: 220px; height: 152px; background: #0F380F; border: 4px solid #0a280a; border-radius: 10px; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: space-between; overflow: hidden; } .ds-lcd-screen::after { content: \"\"; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 4px); } .ds-lcd-meters { width: 100%; display: flex; justify-content: space-between; font: 700 10px/1.3 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.02em; color: #9CBD0F; } .ds-lcd-creature { position: relative; width: 84px; height: 70px; background: #CFE04F; border-radius: 50% 50% 46% 46%; } .ds-eye { position: absolute; top: 38%; width: 7px; height: 7px; background: #0F380F; } .ds-eye:nth-child(1) { left: 28%; } .ds-eye:nth-child(2) { right: 28%; } .ds-mouth { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); width: 20px; height: 8px; border-bottom: 3px solid #0F380F; border-radius: 0 0 8px 8px; } .ds-lcd-mood { font: 700 11px/1.3 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.04em; color: #9CBD0F; }"
+    },
+    {
+      "name": "Stat Row",
+      "kind": "custom",
+      "refersTo": "stat-row",
+      "description": "The honest data layer beneath the device: monospace label + percentage above a plain bar. Deliberately not a card.",
+      "html": "<div class=\"ds-stat-row\"><div class=\"ds-stat-head\"><span>Session</span><span class=\"ds-stat-val\">32%</span></div><div class=\"ds-stat-track\"><div class=\"ds-stat-fill\" style=\"width:32%\"></div></div></div>",
+      "css": ".ds-stat-row { width: 236px; display: flex; flex-direction: column; gap: 4px; } .ds-stat-head { display: flex; justify-content: space-between; font: 500 11px/1.3 ui-monospace, 'SF Mono', Menlo, monospace; color: #1c1c1e; } .ds-stat-val { font-weight: 700; } .ds-stat-track { height: 6px; border-radius: 3px; background: rgba(0,0,0,0.12); overflow: hidden; } .ds-stat-fill { height: 100%; background: #0a84ff; }"
+    },
+    {
+      "name": "Mood Label",
+      "kind": "custom",
+      "refersTo": "lcd-readout",
+      "description": "An in-screen status word. Uppercase, bold, tracked monospace in live phosphor green.",
+      "html": "<span class=\"ds-mood-label\">THRIVING</span>",
+      "css": ".ds-mood-label { display: inline-block; padding: 6px 10px; background: #0F380F; font: 700 11px/1 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.06em; color: #9CBD0F; border-radius: 4px; }"
+    },
+    {
+      "name": "Menu Bar Item",
+      "kind": "custom",
+      "refersTo": "menu-bar-item",
+      "description": "The glanceable read: mood emoji + session percentage, or egg + dash when no data has reported.",
+      "html": "<span class=\"ds-menubar-item\">🙂 32%</span>",
+      "css": ".ds-menubar-item { display: inline-flex; align-items: center; gap: 4px; font: 500 13px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif; color: #1c1c1e; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Pocket Conscience",
+    "overview": "Tokengochi is a 1990s monochrome LCD handheld that someone left running in your menu bar. It has exactly one screen, a fixed phosphor-green palette, and an unbothered opinion about how much Claude you're using. The creature inside it is the entire interface; the numbers are its vital signs, not a readout panel. The system runs on a hard split: inside the LCD screen everything obeys the phosphor palette and a monospace grid, while everything around it stays honest native macOS chrome. The retro never leaks out of the screen, and the OS never leaks in. It explicitly rejects the generic SaaS analytics dashboard; usage is the creature's lived state first and a plain bar second.",
+    "keyCharacteristics": [
+      "One fictional LCD screen, sealed off from native macOS chrome around it.",
+      "A fixed five-state phosphor palette; mood is a color, an expression, and a word, never color alone.",
+      "Monospace for every number; system sans only for the one chrome title.",
+      "Flat by doctrine: depth comes from the dark bezel and scanlines, never shadows.",
+      "Deadpan and still at rest; the screen earns attention by what it says, not by moving."
+    ],
+    "rules": [
+      { "name": "The Single-Screen Rule", "body": "The phosphor palette lives only inside the LCD screen. The popover frame, bars, and buttons stay native macOS chrome. Never tint OS-level UI green, and never render the screen in system colors.", "section": "colors" },
+      { "name": "The Five-State Rule", "body": "The creature is only ever Dot-Matrix Green, Faded Phosphor, Overfed Amber, Queasy Orange, or Low-Battery Green. No sixth body color exists.", "section": "colors" },
+      { "name": "The Monospace-Is-Data Rule", "body": "Every number, percentage, and readout is set in SF Mono. System sans is permitted for exactly one thing: the chrome title.", "section": "typography" },
+      { "name": "The All-Caps Readout Rule", "body": "In-screen status words are uppercase monospace. This is device language, not prose; never sentence-case the screen.", "section": "typography" },
+      { "name": "The Flat-Screen Rule", "body": "No shadows, ever, inside the app's own surfaces. Fake depth with the bezel, scanlines, or punched-hole contrast, never a blur.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the phosphor palette sealed inside the LCD screen; let the popover, bars, and buttons stay native macOS chrome.",
+      "Do set every number and readout in SF Mono.",
+      "Do convey mood with three reinforcing signals at once: body color, facial expression, and the uppercase mood word.",
+      "Do keep the resting state still; motion is rare punctuation that degrades to an instant state change when Reduce Motion is on.",
+      "Do show usage as the creature's lived state first and a plain bar second.",
+      "Do tint every dark pixel toward Screen-Off Green (#0F380F); never use pure #000."
+    ],
+    "donts": [
+      "Don't build the generic SaaS analytics dashboard: no hero-metric template, no identical card grids, no 'Insights' chrome.",
+      "Don't wrap the stat rows in cards or give them borders or background fills.",
+      "Don't add a sixth creature color or a gradient body; reuse one of the five phosphor states.",
+      "Don't put a box-shadow on any in-app surface; fake depth with the bezel and scanlines.",
+      "Don't use border-left / border-right greater than 1px as a colored accent stripe.",
+      "Don't let the creature emote like a needy mascot: no bouncing, no exclamation-mark cheer, no ambient idle animation.",
+      "Don't render in-screen status words in sentence case or in a proportional font."
+    ]
+  }
+}
