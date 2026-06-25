@@ -4,6 +4,12 @@ A macOS menu-bar virtual pet that *is* your Claude usage. Session usage feeds it
 
 See `tokengochi-plan.html` for the full concept, care mechanics, and roadmap.
 
+<p align="center">
+  <img src="assets/screenshot-classic.png" width="280" alt="Classic skin" />
+  &nbsp;&nbsp;
+  <img src="assets/screenshot-claude.png" width="280" alt="Claude skin" />
+</p>
+
 ## Architecture
 
 ```
