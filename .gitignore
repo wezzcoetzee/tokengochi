@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Swift / Xcode
+.build/
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+*.resolved
+
+# Distribution artifacts
+dist/
+
+# Tool directories
+.impeccable/

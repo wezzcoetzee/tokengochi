@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokengochi — Plan</title>
+<style>
+  :root{
+    --bg:#0d0f14; --panel:#161a24; --panel2:#1e2533; --ink:#e8edf5;
+    --muted:#8a93a6; --line:#2a3343; --lcd:#9bbc0f; --lcd-bg:#0f380f;
+    --accent:#ffcd3c; --hot:#ff5d5d; --cool:#5dd4ff; --good:#7be081;
+    --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 80% -10%, #1b2438 0%, transparent 60%),
+      radial-gradient(900px 500px at 0% 10%, #21183a 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:var(--font);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:64px 24px 120px}
+  header.hero{text-align:center;margin-bottom:56px}
+  .badge{display:inline-block;font:600 11px/1 var(--mono);letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent);border:1px solid var(--line);
+    padding:7px 12px;border-radius:999px;background:var(--panel)}
+  h1{font-size:64px;line-height:1;margin:22px 0 10px;letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,#9fb0c9);-webkit-background-clip:text;
+    background-clip:text;color:transparent}
+  .tag{color:var(--muted);font-size:18px;max-width:560px;margin:0 auto}
+  .meta{margin-top:18px;font:500 12px/1 var(--mono);color:var(--muted)}
+
+  section{margin-top:48px}
+  h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+    margin:0 0 18px;font-weight:700}
+  h3{margin:0 0 6px;font-size:17px}
+  p{margin:0 0 12px}
+  .card{background:linear-gradient(180deg,var(--panel),#13161f);border:1px solid var(--line);
+    border-radius:16px;padding:24px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}h1{font-size:46px}}
+
+  /* Tamagotchi device */
+  .device{display:flex;gap:28px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .shell{background:linear-gradient(160deg,#3a2f5e,#241c3d);border-radius:48% 48% 44% 44%/30%;
+    padding:34px 30px;box-shadow:inset 0 2px 10px rgba(255,255,255,.12),0 18px 40px rgba(0,0,0,.5);
+    border:1px solid #4a3d72}
+  .screen{width:240px;height:200px;background:var(--lcd-bg);border-radius:14px;
+    border:6px solid #0a280a;position:relative;overflow:hidden;
+    box-shadow:inset 0 0 24px rgba(0,0,0,.6)}
+  .screen::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px)}
+  .creature{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);
+    transition:width .25s ease,height .25s ease,background .4s}
+  .blob{width:70px;height:64px;background:var(--lcd);border-radius:50% 50% 46% 46%;
+    position:relative;animation:bob 2.4s ease-in-out infinite}
+  .blob::before,.blob::after{content:"";position:absolute;top:38%;width:8px;height:8px;
+    background:var(--lcd-bg);border-radius:50%}
+  .blob::before{left:28%}.blob::after{right:28%}
+  .mouth{position:absolute;left:50%;top:62%;transform:translateX(-50%);
+    width:16px;height:7px;border-bottom:3px solid var(--lcd-bg);border-radius:0 0 9px 9px}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .lcd-top{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-around;
+    font:700 9px/1 var(--mono);color:var(--lcd);opacity:.9;letter-spacing:.04em}
+  .state{position:absolute;bottom:6px;left:0;right:0;text-align:center;
+    font:700 11px/1 var(--mono);color:var(--lcd);text-transform:uppercase;letter-spacing:.1em}
+  .controls{min-width:240px;flex:1}
+  .controls label{font:600 12px/1 var(--mono);color:var(--muted);display:block;margin-bottom:10px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .readout{margin-top:14px;font:600 13px/1.5 var(--mono);color:var(--ink)}
+  .readout b{color:var(--accent)}
+  .hint{color:var(--muted);font-size:13px;margin-top:10px}
+  .meters{position:absolute;top:6px;left:8px;right:8px;display:flex;
+    justify-content:space-between;font:700 9px/1.3 var(--mono);color:var(--lcd)}
+  .poo{position:absolute;bottom:28px;font-size:18px;animation:bob 2.4s ease-in-out infinite}
+  .sick{filter:saturate(.4)}
+  .cleanbtn{margin-top:14px;font:700 12px/1 var(--mono);color:#0d0f14;background:var(--lcd);
+    border:0;border-radius:8px;padding:9px 14px;cursor:pointer}
+  .cleanbtn:active{transform:translateY(1px)}
+  .cleanbtn:disabled{opacity:.4;cursor:default}
+
+  /* mapping table */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  td:first-child{font-weight:600;color:var(--cool);white-space:nowrap}
+
+  /* pipeline */
+  pre{font-family:var(--mono);font-size:12.5px;line-height:1.5;color:#aeb9cc;
+    background:#0b0e15;border:1px solid var(--line);border-radius:12px;padding:18px 20px;overflow:auto;margin:0}
+  .note{border-left:3px solid var(--accent);background:rgba(255,205,60,.06);
+    padding:14px 18px;border-radius:0 12px 12px 0;color:#e6dcc2;font-size:14px}
+
+  /* roadmap */
+  .phase{position:relative;padding:20px 22px 20px 64px}
+  .phase .num{position:absolute;left:18px;top:20px;width:30px;height:30px;border-radius:8px;
+    display:grid;place-items:center;font:800 14px/1 var(--mono);color:#0d0f14;background:var(--accent)}
+  .phase.p2 .num{background:var(--cool)}.phase.p3 .num{background:var(--good)}
+  .pill{display:inline-block;font:600 11px/1 var(--mono);color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:5px 9px;margin:4px 6px 0 0}
+  ul.clean{margin:8px 0 0;padding-left:18px;color:#c6cee0;font-size:14px}
+  ul.clean li{margin:4px 0}
+
+  .q{font-size:14px;color:#c6cee0}
+  .q b{color:var(--hot)}
+  footer{margin-top:64px;text-align:center;color:var(--muted);font-size:13px}
+  a{color:var(--cool)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="badge">Concept &amp; Build Plan</span>
+    <h1>Tokengochi</h1>
+    <p class="tag">A menu-bar virtual pet that <em>is</em> your Claude token usage. Feed it by working. Watch it grow. Don't overfeed it.</p>
+    <div class="meta">macOS · SwiftUI · 23 Jun 2026 · v0.1 draft</div>
+  </header>
+
+  <section>
+    <h2>The Idea</h2>
+    <div class="card">
+      <p>A native macOS menu-bar app that reads your Anthropic <b>subscription</b> limits — the 5-hour <b>session</b> window, the <b>weekly</b> cap, and your live <b>context</b> window — and turns them into the vital signs of a Tamagotchi-style creature.</p>
+      <p>Every token you spend feeds the creature. It gets fatter through a session and slims back when the window resets. At usage milestones it pops out of the MacBook <b>notch</b> to react. Later, creatures get social — visiting, comparing, and competing with friends'.</p>
+      <p style="margin:0;color:var(--muted)">Not a dashboard with a mascot bolted on — a pet whose entire existence is your usage.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Meet the creature</h2>
+    <div class="card device">
+      <div class="shell">
+        <div class="screen">
+          <div class="meters"><span id="m-hun">HUN ░░░░░░░░░░</span><span id="m-hap">HAP ░░░░░░░░░░</span></div>
+          <div class="poo" id="poo" style="display:none"></div>
+          <div class="creature" id="creature">
+            <div class="blob"><div class="mouth"></div></div>
+          </div>
+          <div class="state" id="state">HUNGRY</div>
+        </div>
+      </div>
+      <div class="controls">
+        <label for="usage">Session usage (momentary fatness) →</label>
+        <input type="range" id="usage" min="0" max="100" value="0">
+        <label for="weekly" style="margin-top:16px">Weekly usage (baseline build) →</label>
+        <input type="range" id="weekly" min="0" max="100" value="0">
+        <div class="readout">Session: <b id="r-sess">0%</b> → hunger &nbsp;·&nbsp; Weekly: <b id="r-wk">0%</b> → happiness</div>
+        <div class="readout" style="margin-top:4px">Health: <b id="r-hp">100%</b> &nbsp;·&nbsp; 💩 <b id="r-poo">0</b> &nbsp;·&nbsp; Mood: <b id="r-mood">Hungry</b></div>
+        <button class="cleanbtn" id="newwin">⏭ Start new window</button>
+        <p class="hint">More usage = better — weekly drives happiness with no penalty for going big. <b>End a window under 20% and you waste it → 💩.</b> The only cure is to use Claude: reach <b>25% in a later window to clean one 💩</b>. Uncleaned mess drains Health → Sick. Maxing a limit (~95%+) = stuffed &amp; napping until it resets. Drag, then hit "new window" to roll the clock. Real app: numbers come from Claude Code.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How usage maps to the pet</h2>
+    <div class="card" style="padding:6px 8px">
+      <table>
+        <thead><tr><th>Usage signal</th><th>What it is</th><th>Pet mechanic</th></tr></thead>
+        <tbody>
+          <tr><td>Session %</td><td>5-hour rolling window</td><td>Drives <b>hunger</b> — tokens are food. Well-fed in the healthy band; <b>under 20% = starving → 💩</b></td></tr>
+          <tr><td>Weekly %</td><td>7-day cap</td><td>Drives <b>happiness</b> — more usage = happier (no penalty for going big); near-zero = lonely</td></tr>
+          <tr><td>Context %</td><td>Current conversation</td><td>How <b>stuffed its belly</b> is this chat — burps / naps when you <code>/compact</code></td></tr>
+          <tr><td>Milestones</td><td>10/20/30…%</td><td><b>Pops out of the notch</b> to react, a little fatter each bucket — with optional sound</td></tr>
+          <tr><td>100% hit</td><td>Limit reached</td><td><b>Food coma</b> — taps out until the window resets</td></tr>
+          <tr><td>Idle for days</td><td>No usage</td><td>Gets <b>hungry / bored</b> — nudges you to come feed it</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Care mechanics — the healthy band</h2>
+    <div class="card">
+      <p>Core philosophy: <b>using more is good; using less is the failure.</b> There's no penalty for going big — the only way to harm the creature is to neglect it. And the only cure is to come back and use Claude.</p>
+      <div class="grid2" style="margin-top:8px">
+        <div>
+          <h3 style="color:var(--cool)">Stats</h3>
+          <ul class="clean">
+            <li><b>Hunger</b> ← session %. Usage feeds it; a starved window leaves a mess.</li>
+            <li><b>Happiness</b> ← weekly %. More usage = happier, no ceiling penalty.</li>
+            <li><b>Weight</b> ← accumulated usage. The visible (proud) fatness.</li>
+            <li><b>Health</b> ← drained by uncleaned 💩; recovered only by using Claude.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="color:var(--hot)">Mess &amp; cure</h3>
+          <ul class="clean">
+            <li><b>Wasted window</b> — end a window under 20% used → 💩</li>
+            <li><b>Cleaning</b> — no button; reach <b>25% in a later window to clean one 💩</b></li>
+            <li><b>Sick</b> — uncleaned 💩 piles up, Health drops → Sick until you use Claude</li>
+            <li><b>Maxed (~95%+)</b> — not a punishment: stuffed &amp; napping until reset</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where the data comes from</h2>
+    <div class="card">
+      <p>Claude Code already receives real rate-limit percentages from Anthropic's API response headers and pipes them as JSON to its statusline command. Tokengochi installs its own tiny statusline writer that captures that JSON to a snapshot file; the app polls the file.</p>
+      <pre>Claude Code session (active)
+   │  pipes stdin JSON  { rate_limits.five_hour / seven_day, context_window }
+   ▼
+Tokengochi statusline writer  ──writes──▶  snapshot.json
+   │
+   ▼  poll (FSEvents + timer)
+Tokengochi.app (SwiftUI)
+   • MenuBarExtra  — session / weekly / context, "updated Nm ago"
+   • Notch layer   — creature pops out & reacts at milestones
+   • Pet engine    — maps %→size/mood, fires each milestone once</pre>
+      <p class="note"><b>Honest constraint:</b> there's no background API to poll subscription limits — numbers only refresh while a Claude Code session is active. But each limit carries a <code>resets_at</code> timestamp, so the app counts down accurately and snaps the creature back to "lean" when a window resets. A freshness indicator keeps it honest.</p>
+      <p style="margin:12px 0 0;color:var(--muted);font-size:13px">Real fields, verified locally: <code>rate_limits.five_hour.used_percentage</code>, <code>rate_limits.seven_day.used_percentage</code>, <code>context_window.used_percentage</code> (+ <code>resets_at</code> timestamps).</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Roadmap</h2>
+    <div class="grid3" style="grid-template-columns:1fr">
+      <div class="card phase p1">
+        <div class="num">1</div>
+        <h3>Menu bar &amp; accuracy</h3>
+        <p style="margin:0;color:var(--muted)">Get the numbers right and the loop alive.</p>
+        <ul class="clean">
+          <li>SwiftUI <code>MenuBarExtra</code> with session / weekly / context bars</li>
+          <li>Own statusline writer → snapshot reader (self-contained, coexists with claude-hud)</li>
+          <li>"Updated Nm ago" freshness + correct reset countdowns</li>
+          <li>Simple creature that changes size with usage</li>
+        </ul>
+        <div><span class="pill">SwiftUI</span><span class="pill">FSEvents</span><span class="pill">local-only</span></div>
+      </div>
+      <div class="card phase p2">
+        <div class="num">2</div>
+        <h3>The notch game layer</h3>
+        <p style="margin:0;color:var(--muted)">Make it delightful.</p>
+        <ul class="clean">
+          <li>Borderless window over the notch; creature pops out at 10/20/30…%</li>
+          <li>Evolving creature art + mood states (hungry → fat → food coma)</li>
+          <li>Milestone animations + optional sound (toggle, default on)</li>
+        </ul>
+        <div><span class="pill">notch overlay</span><span class="pill">sprites</span><span class="pill">SpriteKit?</span></div>
+      </div>
+      <div class="card phase p3">
+        <div class="num">3</div>
+        <h3>Social / "war"</h3>
+        <p style="margin:0;color:var(--muted)">Creatures meet. (Direction TBD.)</p>
+        <ul class="clean">
+          <li>Accounts + backend so creatures sync &amp; socialize</li>
+          <li>Compare size/health; visit, battle, or field a stable of creatures</li>
+          <li>Leaderboards / factions / duels — exact fantasy decided later</li>
+        </ul>
+        <div><span class="pill">backend</span><span class="pill">accounts</span><span class="pill">later</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Locked decisions</h2>
+    <div class="grid2">
+      <div class="card"><h3>Stack</h3><p style="margin:0;color:var(--muted)">Native Swift / SwiftUI. Best notch + menu-bar feel, lowest footprint.</p></div>
+      <div class="card"><h3>Data source</h3><p style="margin:0;color:var(--muted)">Subscription limits, read from local Claude Code data via our own statusline writer.</p></div>
+      <div class="card"><h3>Scope</h3><p style="margin:0;color:var(--muted)">Build clean for sharing later — no hard-coded paths, signable.</p></div>
+      <div class="card"><h3>V1 order</h3><p style="margin:0;color:var(--muted)">Menu-bar accuracy first, then the fun. Live numbers only (no history yet).</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Open questions for next pass</h2>
+    <div class="card">
+      <p class="q"><b>1.</b> Creature art direction — pixel/LCD retro (true Tamagotchi) or a softer modern mascot?</p>
+      <p class="q"><b>2.</b> Does session or weekly drive the creature's <em>primary</em> body size? (Leaning: session = momentary fatness, weekly = baseline build.)</p>
+      <p class="q"><b>3.</b> How fast does Health decay per uncleaned 💩, and how many 💩 before Sick? (Mock uses −20 each, Sick under 40.)</p>
+      <p class="q"><b>4.</b> Notch fallback styling for external displays without a notch.</p>
+      <p class="q"><b>5.</b> Phase 3 social fantasy — revisit when we get there.</p>
+    </div>
+  </section>
+
+  <footer>Tokengochi · concept draft · feed responsibly 🐣</footer>
+</div>
+
+<script>
+  const usage = document.getElementById('usage');
+  const weekly = document.getElementById('weekly');
+  const blob = document.querySelector('.blob');
+  const state = document.getElementById('state');
+  const poo = document.getElementById('poo');
+  const newWinBtn = document.getElementById('newwin');
+  const rSess = document.getElementById('r-sess');
+  const rWk = document.getElementById('r-wk');
+  const rHp = document.getElementById('r-hp');
+  const rPoo = document.getElementById('r-poo');
+  const rMood = document.getElementById('r-mood');
+  const mHun = document.getElementById('m-hun');
+  const mHap = document.getElementById('m-hap');
+
+  let poops = 0;
+  let windowCleaned = false;
+
+  function bar(label, v){
+    const f = Math.max(0, Math.min(10, Math.round(v / 10)));
+    return label + ' ' + '█'.repeat(f) + '░'.repeat(10 - f);
+  }
+
+  function render(){
+    const s = +usage.value;
+    const w = +weekly.value;
+    const hunger = 100 - s;
+    const happiness = Math.min(100, Math.round(w * 1.1));
+
+    if(s >= 25 && !windowCleaned && poops > 0){ poops--; windowCleaned = true; }
+
+    const health = Math.max(0, 100 - poops * 20);
+    const maxed = s >= 95 || w >= 95;
+    const starving = s < 20;
+
+    blob.style.width  = (52 + w * 0.7 + s * 0.7) + 'px';
+    blob.style.height = (50 + w * 0.35 + s * 0.35) + 'px';
+
+    poo.style.display = poops > 0 ? 'block' : 'none';
+    poo.textContent = '💩'.repeat(Math.min(poops, 4));
+
+    let label, mood, color, sick = false;
+    if(health < 40){ label='SICK'; mood='Sick 🤒 — use Claude to recover'; color='#ff8a5d'; sick = true; }
+    else if(maxed){ label='STUFFED'; mood='Stuffed & napping 😴'; color='#ffcd3c'; }
+    else if(starving){ label='STARVING'; mood='Starving — feed me 🍴'; color='#9bbc0f'; }
+    else if(happiness >= 70){ label='THRIVING'; mood='Thriving 😄'; color='#9bbc0f'; }
+    else if(happiness >= 35){ label='OKAY'; mood='Okay'; color='#cfe04f'; }
+    else { label='LONELY'; mood='Lonely 😔 — use more'; color='#cfe04f'; }
+    blob.classList.toggle('sick', sick);
+    blob.style.background = color;
+    state.textContent = label;
+
+    rSess.textContent = s + '%';
+    rWk.textContent = w + '%';
+    rHp.textContent = health + '%';
+    rPoo.textContent = poops;
+    rMood.textContent = mood;
+    mHun.textContent = bar('HUN', hunger);
+    mHap.textContent = bar('HAP', happiness);
+    blob.style.animationDuration = (maxed || sick ? 4.5 : 2.4 - Math.max(s, w) / 100) + 's';
+  }
+
+  function newWindow(){
+    if(+usage.value < 20) poops++;
+    usage.value = 0;
+    windowCleaned = false;
+    render();
+  }
+
+  usage.addEventListener('input', render);
+  weekly.addEventListener('input', render);
+  newWinBtn.addEventListener('click', newWindow);
+  render();
+</script>
+</body>
+</html>

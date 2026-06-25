@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokengochi - Codex Expansion Plan</title>
+<style>
+  :root {
+    --bg: #090d0b;
+    --panel: #111812;
+    --panel-2: #182119;
+    --ink: #d7e8cc;
+    --muted: #849579;
+    --line: #263321;
+    --green: #9bbd10;
+    --bright: #d8f36a;
+    --amber: #f3c34c;
+    --blue: #76c7ff;
+    --red: #ff7a6e;
+    --code: #070a08;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 420px at 85% -10%, #1c2a1d, transparent 65%),
+      linear-gradient(180deg, #0b120c, var(--bg));
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    padding: 48px 22px 96px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header { display: grid; grid-template-columns: 1.35fr .65fr; gap: 32px; align-items: end; margin-bottom: 44px; }
+  @media (max-width: 820px) { header, .grid, .flow, .split { grid-template-columns: 1fr; } }
+  .eyebrow {
+    margin: 0 0 10px;
+    color: var(--green);
+    font: 700 12px/1 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  h1 { margin: 0; font-size: clamp(34px, 7vw, 70px); line-height: .95; letter-spacing: -.03em; }
+  .lede { max-width: 720px; color: var(--muted); font-size: 18px; margin: 18px 0 0; }
+  .stamp {
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--panel), #0d130e);
+    border-radius: 8px;
+    padding: 18px;
+    font-family: var(--mono);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .stamp b { color: var(--bright); }
+
+  section { margin-top: 42px; }
+  h2 {
+    margin: 0 0 16px;
+    color: var(--bright);
+    font: 800 13px/1 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+  }
+  h3 { margin: 0 0 8px; font-size: 17px; }
+  p { margin: 0 0 12px; }
+  .card {
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--panel), #0c120d);
+    border-radius: 8px;
+    padding: 22px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.28);
+  }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .flow { display: grid; grid-template-columns: 1fr 46px 1fr 46px 1fr; gap: 12px; align-items: center; }
+  .arrow { text-align: center; color: var(--green); font: 900 24px/1 var(--mono); }
+  .pill {
+    display: inline-block;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font: 700 11px/1 var(--mono);
+    padding: 6px 9px;
+    margin: 5px 5px 0 0;
+  }
+  .score {
+    font: 900 38px/1 var(--mono);
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+  .risk { color: var(--amber); }
+  .bad { color: var(--red); }
+  .good { color: var(--green); }
+  .blue { color: var(--blue); }
+  ul { margin: 10px 0 0; padding-left: 19px; color: #c6d8bd; }
+  li { margin: 5px 0; }
+  code {
+    background: var(--code);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    color: var(--bright);
+    padding: 1px 5px;
+    font-family: var(--mono);
+    font-size: .92em;
+  }
+  pre {
+    margin: 0;
+    padding: 16px;
+    overflow: auto;
+    background: var(--code);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: #b9cbb1;
+    font: 12px/1.55 var(--mono);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 12px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font: 800 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 1px; }
+  td:first-child { color: var(--bright); font-weight: 700; white-space: nowrap; }
+  .phase {
+    position: relative;
+    padding-left: 58px;
+    min-height: 78px;
+  }
+  .num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: var(--green);
+    color: #071006;
+    font: 900 15px/1 var(--mono);
+  }
+  .note {
+    border-left: 3px solid var(--amber);
+    padding: 14px 16px;
+    background: rgba(243,195,76,.08);
+    border-radius: 0 8px 8px 0;
+    color: #eadfbf;
+  }
+  .mock {
+    min-height: 210px;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 2px, transparent 2px 5px),
+      #0f380f;
+    border: 5px solid #091f09;
+    border-radius: 8px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 12px;
+    color: var(--green);
+    font-family: var(--mono);
+  }
+  .mock-top, .mock-bottom { display: flex; justify-content: space-between; font-size: 11px; }
+  .pet { display: grid; place-items: center; font-size: 68px; filter: grayscale(1) sepia(.8) hue-rotate(35deg) saturate(1.6); }
+  .source-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tab {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font: 800 11px/1 var(--mono);
+    color: var(--muted);
+  }
+  .tab.active { color: #071006; background: var(--green); border-color: var(--green); }
+  .menu-stack { display: grid; gap: 10px; }
+  .menu-item {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: rgba(7,10,8,.55);
+  }
+  .mini-pet {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #091f09;
+    border-radius: 7px;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 2px, transparent 2px 5px),
+      #0f380f;
+    color: var(--green);
+    font: 900 22px/1 var(--mono);
+  }
+  .menu-title { font-weight: 800; margin-bottom: 2px; }
+  .menu-meta { color: var(--muted); font: 12px/1.35 var(--mono); }
+  .menu-stat { color: var(--bright); font: 800 12px/1.35 var(--mono); text-align: right; }
+  footer { margin-top: 58px; color: var(--muted); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Tokengochi expansion plan</p>
+      <h1>One creature per provider.</h1>
+      <p class="lede">Adding Codex is still not a rewrite, but the UX should become multi-pet: Claude and Codex each get their own menu-bar item, snapshot, state, and creature identity.</p>
+    </div>
+    <div class="stamp">
+      <div><b>Repo checked:</b> 25 Jun 2026</div>
+      <div><b>Current stack:</b> SwiftUI + TokengochiKit</div>
+      <div><b>Effort:</b> 3-5 days for a useful v1</div>
+      <div><b>Hard part:</b> Codex resets and live quota data</div>
+    </div>
+  </header>
+
+  <section>
+    <h2>Answer</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="score good">Low</div>
+        <h3>App architecture work</h3>
+        <p>The app can run multiple independent <code>PetSession</code> instances. Each provider owns its own snapshot file and menu-bar item.</p>
+        <span class="pill">One pet per source</span><span class="pill">No mixed state</span>
+      </div>
+      <div class="card">
+        <div class="score risk">Medium</div>
+        <h3>Codex data ingestion</h3>
+        <p>Codex can emit JSONL usage from <code>codex exec --json</code>, and hooks can call scripts. Reset-count data needs a confirmed source or a local estimate.</p>
+        <span class="pill">New producer</span><span class="pill">Reset model</span>
+      </div>
+      <div class="card">
+        <div class="score bad">Open</div>
+        <h3>Quota and resets parity</h3>
+        <p>I did not find a Claude-style personal live usage endpoint in the current Codex manual. If Codex reset counts are not exposed, v1 should label them as estimated.</p>
+        <span class="pill">Research spike</span><span class="pill">Fallback required</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Current repo shape</h2>
+    <div class="flow">
+      <div class="card">
+        <h3>Claude producers</h3>
+        <p><code>TokengochiWriter</code> reads Claude Code statusline JSON. <code>TokengochiPoller</code> calls Anthropic OAuth usage.</p>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="card">
+        <h3>Snapshot</h3>
+        <p><code>UsageSnapshot</code> stores one provider's session, weekly, context, reset times, model, effort, and freshness.</p>
+      </div>
+      <div class="arrow">-&gt;</div>
+      <div class="card">
+        <h3>Pet UI</h3>
+        <p><code>UsageStore</code> and <code>PetEngine</code> transform a snapshot into one creature. The app can instantiate this once per provider.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommended v1</h2>
+    <div class="split">
+      <div class="card">
+        <h3>Scope</h3>
+        <ul>
+          <li>Show one menu-bar item per active provider: one Claude creature and one Codex creature.</li>
+          <li>Keep separate pet rules, snapshots, freshness, and reset state per provider.</li>
+          <li>Add a Codex local activity producer that records turn token usage from JSONL events or a hook script.</li>
+          <li>Add Codex-specific reset fields: available resets, used resets, next reset time, and source quality.</li>
+          <li>Rename the existing unlockable <code>claude</code> creature skin to <code>codex</code>, then use it as the Codex provider's creature.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Non-goals for v1</h3>
+        <ul>
+          <li>Do not try to clone Anthropic's OAuth poller without an official OpenAI endpoint for equivalent data.</li>
+          <li>Do not read private auth files directly for billing data.</li>
+          <li>Do not mix Claude and Codex values into one creature or one window.</li>
+          <li>Do not use a provider selector as the primary UX; multiple subscriptions should be visible at once.</li>
+          <li>Do not promise exact Codex plan-limit percentages until the data source is verified.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Data source options</h2>
+    <div class="card" style="padding: 6px 8px;">
+      <table>
+        <thead>
+          <tr><th>Option</th><th>What it gives</th><th>Fit</th><th>Risk</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Codex JSONL</td>
+            <td><code>turn.completed</code> includes usage fields like input, cached input, output, and reasoning output tokens.</td>
+            <td>Best for v1 local Codex activity and token totals.</td>
+            <td>Only covers Codex runs launched in a way Tokengochi can observe; reset counts may not appear here.</td>
+          </tr>
+          <tr>
+            <td>Codex hooks</td>
+            <td>Command hooks can run on lifecycle events such as <code>Stop</code>, <code>PostToolUse</code>, and <code>SessionStart</code>.</td>
+            <td>Good for interactive CLI integration if hook payload includes enough usage context or can locate session logs.</td>
+            <td>Needs a spike against real hook payloads, especially reset metadata.</td>
+          </tr>
+          <tr>
+            <td>Enterprise analytics</td>
+            <td>Workspace usage can include threads, turns, credits, clients, and token fields.</td>
+            <td>Possible fallback for reset/usage history, not the default pet loop.</td>
+            <td>Admin-gated and usage can lag up to 12 hours.</td>
+          </tr>
+          <tr>
+            <td>Live quota API</td>
+            <td>Would be ideal: session %, weekly %, reset count, reset times.</td>
+            <td>Perfect if it exists for the user's auth path.</td>
+            <td>Not confirmed in the current official Codex docs.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Implementation phases</h2>
+    <div class="split">
+      <div class="card phase">
+        <div class="num">1</div>
+        <h3>Multi-provider snapshot store</h3>
+        <p>Add <code>UsageProvider</code>, source metadata, and per-provider snapshot files. Preserve existing decoding by migrating today's <code>snapshot.json</code> into the Claude slot.</p>
+        <ul>
+          <li><code>provider: claude | codex</code></li>
+          <li><code>snapshot-claude.json</code> and <code>snapshot-codex.json</code></li>
+          <li><code>windowKind: exact | estimated</code></li>
+        </ul>
+      </div>
+      <div class="card phase">
+        <div class="num">2</div>
+        <h3>Producer abstraction</h3>
+        <p>Rename the merge API around observations rather than Claude producers. Keep the current Claude writer and poller behavior intact, but write into the Claude snapshot only.</p>
+        <ul>
+          <li><code>AccountUsageObservation</code> owns session/weekly/reset fields.</li>
+          <li><code>ConversationObservation</code> owns context/model/effort.</li>
+          <li>Existing tests become provider-aware.</li>
+        </ul>
+      </div>
+      <div class="card phase">
+        <div class="num">3</div>
+        <h3>Codex producer and resets</h3>
+        <p>Create <code>TokengochiCodexWriter</code> or <code>TokengochiCodexHook</code> that ingests Codex usage events and writes snapshots.</p>
+        <ul>
+          <li>Parse JSONL <code>turn.completed.usage</code>.</li>
+          <li>Roll tokens into a configurable daily/session budget.</li>
+          <li>Capture exact reset count if available; otherwise estimate resets from observed limit-roll events and label the value.</li>
+          <li>Store token totals and reset metadata alongside percent estimates.</li>
+        </ul>
+      </div>
+      <div class="card phase">
+        <div class="num">4</div>
+        <h3>Two menu-bar creatures</h3>
+        <p>Replace the provider selector with a provider registry that creates one status item and one popover per active provider.</p>
+        <ul>
+          <li>Claude creature uses the classic skin by default.</li>
+          <li>Existing <code>PetSkin.claude</code> becomes <code>PetSkin.codex</code>.</li>
+          <li>Codex popover shows reset count near the session/weekly vitals.</li>
+          <li>Freshness text per provider.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Proposed data model</h2>
+    <div class="split">
+      <pre><code>public enum UsageProvider: String, Codable {
+    case claude
+    case codex
+}
+
+public enum UsageSource: String, Codable {
+    case claudeStatusline
+    case claudePoller
+    case codexJsonl
+    case codexHook
+}
+
+public enum MeasurementKind: String, Codable {
+    case exactQuota
+    case estimatedBudget
+    case estimatedResets
+}</code></pre>
+      <pre><code>public struct UsageSnapshot: Codable {
+    var provider: UsageProvider?
+    var source: UsageSource?
+    var measurementKind: MeasurementKind?
+    var sessionPct: Double?
+    var weeklyPct: Double?
+    var contextPct: Double?
+    var inputTokens: Int?
+    var outputTokens: Int?
+    var reasoningTokens: Int?
+    var codexResetsAvailable: Int?
+    var codexResetsUsed: Int?
+    var codexNextResetAt: Double?
+    var updatedAt: Double
+}</code></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Menu experience</h2>
+    <div class="split">
+      <div class="card">
+        <div class="menu-stack">
+          <div class="menu-item">
+            <div class="mini-pet">C</div>
+            <div>
+              <div class="menu-title">Claude</div>
+              <div class="menu-meta">session 68% / weekly 44%</div>
+            </div>
+            <div class="menu-stat">exact</div>
+          </div>
+          <div class="menu-item">
+            <div class="mini-pet">X</div>
+            <div>
+              <div class="menu-title">Codex</div>
+              <div class="menu-meta">session 42% / resets 3 left</div>
+            </div>
+            <div class="menu-stat">est</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>User-facing copy</h3>
+        <p>Each provider gets its own popover, so the copy can be concrete. Codex can show extra reset state without making Claude carry fields it does not have.</p>
+        <ul>
+          <li>Claude no data: "no Claude data yet. start Claude Code or run the poller"</li>
+          <li>Codex no data: "no Codex data yet. start a Codex session"</li>
+          <li>Codex estimated: "estimated from local Codex turns"</li>
+          <li>Codex resets: "3 resets left" or "resets unknown" depending on source quality</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Work estimate</h2>
+    <div class="card" style="padding: 6px 8px;">
+      <table>
+        <thead><tr><th>Work</th><th>Estimate</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Multi-provider model and tests</td><td>0.5-1 day</td><td>Add provider-specific snapshot files and migrate the existing snapshot into Claude.</td></tr>
+          <tr><td>Codex JSONL parser</td><td>0.5-1 day</td><td>Needs fixtures from real <code>codex exec --json</code> output.</td></tr>
+          <tr><td>Codex reset metadata spike</td><td>0.5-1 day</td><td>Verify whether reset count appears in hook output, logs, local state, or an authorized API.</td></tr>
+          <tr><td>Two menu-bar items</td><td>1 day</td><td>Introduce a provider registry and one <code>NSStatusItem</code>/<code>UsageStore</code> per provider.</td></tr>
+          <tr><td>Rename Claude skin to Codex skin</td><td>0.25 day</td><td>Update <code>PetSkin.claude</code>, tests, colors, labels, and unlock copy.</td></tr>
+          <tr><td>Provider setup docs</td><td>0.5 day</td><td>Document Claude poller/writer and Codex hook/JSONL setup separately.</td></tr>
+          <tr><td>Exact Codex account usage poller</td><td>Unknown</td><td>Only if a suitable official API exists for the target account type.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decision</h2>
+    <div class="note">
+      Build multi-provider support first: separate creatures, separate snapshots, separate menu items. Ship Codex as estimated local-activity plus reset metadata if available. Treat exact Codex quota and reset parity as a second track after verifying a live, authorized data source.
+    </div>
+  </section>
+
+  <footer>
+    Based on local repo inspection plus the current OpenAI Codex manual cached on 25 Jun 2026.
+  </footer>
+</div>
+</body>
+</html>

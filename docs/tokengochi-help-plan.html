@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokengochi — Help Icon Plan</title>
+<style>
+  :root {
+    --bg: #0a0f0a;
+    --panel: #11181166;
+    --ink: #cfe0c0;
+    --dim: #7e8f72;
+    --green: #9bbd10;
+    --faded: #cfe14f;
+    --amber: #ffcc3d;
+    --orange: #ff8a5c;
+    --low: #57760d;
+    --screen: #0f380f;
+    --line: #2a3a26;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 70% -10%, #16221280, transparent),
+      var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    padding: 48px 24px 96px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header.hero { margin-bottom: 40px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--green); margin: 0 0 10px;
+  }
+  h1 { font-size: 34px; margin: 0 0 12px; letter-spacing: -0.5px; }
+  h1 .q {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 50%; font-size: 22px;
+    border: 2px solid var(--green); color: var(--green);
+    vertical-align: middle; margin-left: 6px;
+  }
+  .lede { color: var(--dim); max-width: 70ch; font-size: 16px; }
+
+  section { margin-top: 48px; }
+  h2 {
+    font-size: 13px; font-family: var(--mono); letter-spacing: 2px;
+    text-transform: uppercase; color: var(--faded);
+    border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 20px;
+  }
+
+  /* ── Mockup: the help button in the menu + the help panel side by side ── */
+  .mock-row { display: grid; grid-template-columns: 264px 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 760px) { .mock-row { grid-template-columns: 1fr; } }
+
+  .menu, .help-panel {
+    background: #0c120c;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 12px 40px #00000066;
+  }
+  .menu-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .menu-head .title { font-weight: 700; font-size: 15px; }
+  .iconbtn {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--dim); color: var(--dim);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; font-family: var(--mono); cursor: pointer;
+    background: transparent; transition: .15s;
+  }
+  .iconbtn.active, .iconbtn:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 0 3px #9bbd1022; }
+  .screen {
+    height: 120px; border-radius: 8px; margin-bottom: 12px;
+    background: linear-gradient(var(--screen), #0b2a0b);
+    display: flex; align-items: center; justify-content: center; font-size: 44px;
+    border: 3px solid #1c2a18;
+  }
+  .statline { font-family: var(--mono); font-size: 12px; color: var(--faded); display:flex; justify-content: space-between; padding: 2px 0; }
+  .bar { height: 6px; border-radius: 3px; background: #1c2a18; overflow: hidden; margin: 3px 0 8px; }
+  .bar > i { display: block; height: 100%; background: var(--green); }
+  .callout { font-family: var(--mono); font-size: 11px; color: var(--dim); margin-top: 8px; }
+
+  .help-panel h3 { margin: 0 0 4px; font-size: 15px; }
+  .help-panel .sub { color: var(--dim); font-size: 12px; margin-bottom: 14px; font-family: var(--mono); }
+  .help-row { display: grid; grid-template-columns: 32px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); align-items: start; }
+  .help-row .ic { font-size: 20px; text-align: center; }
+  .help-row .name { font-weight: 600; font-size: 13px; }
+  .help-row .desc { font-size: 12px; color: var(--dim); }
+
+  /* ── State tables ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .card .top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .card .emoji { font-size: 26px; }
+  .card .label { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .card .cond { font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 6px; }
+  .card p { margin: 0; font-size: 13px; color: var(--dim); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--faded); }
+  td.mono, td code { font-family: var(--mono); color: var(--faded); }
+  code { background: #14201380; padding: 1px 5px; border-radius: 4px; font-family: var(--mono); font-size: 12px; }
+
+  .tiers { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tier { flex: 1 1 130px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; text-align: center; }
+  .tier .pct { font-family: var(--mono); font-size: 22px; color: var(--green); }
+  .tier .nm { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .tier .lk { font-size: 11px; color: var(--dim); font-family: var(--mono); }
+
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; position: relative; padding: 12px 0 12px 44px; border-top: 1px solid var(--line); }
+  .steps li::before {
+    content: counter(s); position: absolute; left: 0; top: 12px;
+    width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--green);
+    color: var(--green); font-family: var(--mono); display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .steps li b { display: block; margin-bottom: 2px; }
+  .steps li span { color: var(--dim); font-size: 13px; }
+
+  .pill { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--dim); margin-right: 6px; }
+
+  .footnote { margin-top: 16px; font-size: 13px; color: var(--dim); }
+  a { color: var(--green); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Tokengochi · Design Plan</p>
+    <h1>A help icon that explains every state <span class="q">?</span></h1>
+    <p class="lede">
+      Add a small <strong>?</strong> button to the menu header. Tapping it flips the popover
+      into a <strong>Help / Legend</strong> view that decodes every mood, vital, the 💩 mechanic,
+      and the animation unlocks — all sourced directly from <code>PetEngine</code> so the docs can't drift from the code.
+    </p>
+  </header>
+
+  <!-- ============ MOCKUP ============ -->
+  <section>
+    <h2>1 · Where it lives</h2>
+    <div class="mock-row">
+      <!-- the menu with the new ? button -->
+      <div class="menu">
+        <div class="menu-head">
+          <span class="title">Tokengochi</span>
+          <span class="iconbtn active" title="Help">?</span>
+        </div>
+        <div class="screen">😄</div>
+        <div class="statline"><span>Session</span><span>62%</span></div>
+        <div class="bar"><i style="width:62%"></i></div>
+        <div class="statline"><span>Weekly</span><span>71%</span></div>
+        <div class="bar"><i style="width:71%"></i></div>
+        <div class="callout">♥ 80%&nbsp;&nbsp;💩 1&nbsp;&nbsp;·&nbsp;&nbsp;Sway unlocked</div>
+        <div class="callout" style="color:var(--green)">← new ? button toggles the panel →</div>
+      </div>
+
+      <!-- the help panel that appears -->
+      <div class="help-panel">
+        <h3>What am I looking at?</h3>
+        <div class="sub">tap ? again to go back · scrollable</div>
+        <div class="help-row"><div class="ic">🍴</div><div><div class="name">Hunger = unused session</div><div class="desc">Spending tokens feeds your pet. A full session bar = a full belly. Using <em>more</em> is always good.</div></div></div>
+        <div class="help-row"><div class="ic">😄</div><div><div class="name">Happiness = weekly usage</div><div class="desc">The more you use across the week, the happier — no ceiling, no burnout penalty.</div></div></div>
+        <div class="help-row"><div class="ic">💩</div><div><div class="name">Messes = wasted windows</div><div class="desc">End a 5-hour window under 20% used and you leave a mess. Hit 25% in a later window to clean one.</div></div></div>
+        <div class="help-row"><div class="ic">♥</div><div><div class="name">Health = 100 − messes×20</div><div class="desc">Uncleaned messes make your pet Sick. Cure it only by using Claude.</div></div></div>
+        <div class="help-row"><div class="ic">✨</div><div><div class="name">Animations unlock with weekly peak</div><div class="desc">Heavier weekly use teaches your pet new moves — up to Sparkle at 80%.</div></div></div>
+      </div>
+    </div>
+    <p class="footnote">Interaction: a <code>@State private var showingHelp</code> flips <code>MenuContentView</code> between the stats body and the legend — no new window, same popover. The button is an <code>NSImage(systemSymbolName: "questionmark.circle")</code> for crisp menu-bar rendering and VoiceOver gets <code>"Help. Explains moods and mechanics."</code></p>
+  </section>
+
+  <!-- ============ MOODS ============ -->
+  <section>
+    <h2>2 · The 7 moods (exact rules from PetEngine)</h2>
+    <div class="cards">
+      <div class="card"><div class="top"><span class="emoji">🤒</span><span class="label" style="color:var(--orange)">Sick</span></div><div class="cond">health &lt; 40</div><p>Too many uncleaned messes. Beats every other mood. Cured only by using Claude.</p></div>
+      <div class="card"><div class="top"><span class="emoji">😴</span><span class="label" style="color:var(--amber)">Stuffed</span></div><div class="cond">session ≥ 95% or weekly ≥ 95%</div><p>Maxed out & napping until reset. This is a <em>reward</em>, not a penalty.</p></div>
+      <div class="card"><div class="top"><span class="emoji">🍴</span><span class="label">Starving</span></div><div class="cond">session &lt; 20%</div><p>Barely fed this window. Run a session to feed it.</p></div>
+      <div class="card"><div class="top"><span class="emoji">😄</span><span class="label">Thriving</span></div><div class="cond">happiness ≥ 70</div><p>Strong weekly usage. The happy default for heavy users.</p></div>
+      <div class="card"><div class="top"><span class="emoji">🙂</span><span class="label">Okay</span></div><div class="cond">happiness ≥ 35</div><p>Moderate weekly usage. Content but not glowing.</p></div>
+      <div class="card"><div class="top"><span class="emoji">😔</span><span class="label">Lonely</span></div><div class="cond">happiness &lt; 35</div><p>Light week so far. More usage cheers it up.</p></div>
+      <div class="card"><div class="top"><span class="emoji">🥚</span><span class="label" style="color:var(--low)">No Data</span></div><div class="cond">no snapshot yet</div><p>Start a Claude Code session to wake it up.</p></div>
+    </div>
+    <p class="footnote">Priority order is exactly: <code>sick → stuffed → starving → thriving → okay → lonely</code>. The legend lists them in this same order so the panel matches behavior.</p>
+  </section>
+
+  <!-- ============ VITALS ============ -->
+  <section>
+    <h2>3 · The vitals & their formulas</h2>
+    <table>
+      <thead><tr><th>Vital</th><th>Formula</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td>Hunger</td><td class="mono">100 − session%</td><td>More session usage = more fed. Tokens are food.</td></tr>
+        <tr><td>Happiness</td><td class="mono">min(100, weekly% × 1.1)</td><td>Monotonic — more weekly usage, happier. No over-use penalty.</td></tr>
+        <tr><td>Health</td><td class="mono">100 − messes × 20</td><td>Drops 20 per uncleaned mess. Below 40 → Sick.</td></tr>
+        <tr><td>Weight</td><td class="mono">(weekly%×0.7 + session%×0.7) / 100</td><td>Body size — "proud fatness." Grows as you spend.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============ POOP MECHANIC ============ -->
+  <section>
+    <h2>4 · The 💩 mechanic (wasted windows)</h2>
+    <ol class="steps">
+      <li><b>A window ends under 20% used</b><span>When the 5-hour session resets and your peak that window was below 20%, the pet leaves one 💩.</span></li>
+      <li><b>Each 💩 costs 20 health</b><span>Stack a few and the pet drops below 40 health → 🤒 Sick.</span></li>
+      <li><b>Clean by using Claude</b><span>Reach 25% session usage in a <em>later</em> window and one 💩 is auto-cleaned — at most one per window. There is no "clean" button.</span></li>
+    </ol>
+    <p class="footnote"><span class="pill">threshold 20%</span><span class="pill">clean 25%</span><span class="pill">−20 health / mess</span> Constants come straight from <code>PetEngine.wastedWindowThreshold</code>, <code>cleanThreshold</code>, <code>healthPerPoop</code>.</p>
+  </section>
+
+  <!-- ============ ANIMATION TIERS ============ -->
+  <section>
+    <h2>5 · Animation unlocks (by peak weekly %)</h2>
+    <div class="tiers">
+      <div class="tier"><div class="pct">0%</div><div class="nm">Dormant</div><div class="lk">always</div></div>
+      <div class="tier"><div class="pct">5%</div><div class="nm">Breathing</div><div class="lk">unlock</div></div>
+      <div class="tier"><div class="pct">20%</div><div class="nm">Blinking</div><div class="lk">unlock</div></div>
+      <div class="tier"><div class="pct">40%</div><div class="nm">Sway</div><div class="lk">unlock</div></div>
+      <div class="tier"><div class="pct">60%</div><div class="nm">Bounce</div><div class="lk">unlock</div></div>
+      <div class="tier"><div class="pct">80%</div><div class="nm">Sparkle</div><div class="lk">unlock</div></div>
+    </div>
+    <p class="footnote">Tiers are cumulative and tracked by your all-time <code>peakWeekly</code>, so they never regress when a window resets.</p>
+  </section>
+
+  <!-- ============ BUILD PLAN ============ -->
+  <section>
+    <h2>6 · How I'd build it</h2>
+    <ol class="steps">
+      <li><b>Add a legend data source in TokengochiKit</b><span>A small <code>HelpTopic</code> list (icon, title, blurb) + a <code>Mood.helpDescription</code> and <code>AnimationTier</code> threshold list — so the UI reads the same constants the engine uses. Nothing hard-coded twice.</span></li>
+      <li><b>Add the ? button to the menu header</b><span>In <code>MenuContentView</code>, put a <code>questionmark.circle</code> button beside the title, bound to <code>@State showingHelp</code>.</span></li>
+      <li><b>Build HelpView</b><span>A scrollable SwiftUI view (moods, vitals, 💩, animations) styled with the existing <code>Phosphor</code> palette and <code>lcdReadout()</code>. Toggles in place of the stats body.</span></li>
+      <li><b>Accessibility</b><span>VoiceOver labels per row, button labelled, panel grouped — mirrors the existing <code>screenAccessibilityLabel</code> approach.</span></li>
+    </ol>
+  </section>
+
+  <p class="footnote" style="margin-top:40px;">This is a plan mockup, not the app. Reply with any tweaks (placement, what to include, in-panel vs. separate window) and I'll implement it in SwiftUI.</p>
+
+</div>
+</body>
+</html>
