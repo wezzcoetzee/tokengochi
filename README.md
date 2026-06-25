@@ -2,8 +2,6 @@
 
 A macOS menu-bar virtual pet that *is* your Claude usage. Session usage feeds it, weekly usage keeps it happy, and neglect (wasting your session window) leaves a mess you can only clean by coming back and using Claude.
 
-See `tokengochi-plan.html` for the full concept, care mechanics, and roadmap.
-
 <p align="center">
   <img src="assets/screenshot-classic.png" width="280" alt="Classic skin" />
   &nbsp;&nbsp;
