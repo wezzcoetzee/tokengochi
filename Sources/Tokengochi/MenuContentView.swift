@@ -3,6 +3,7 @@ import TokengochiKit
 
 struct MenuContentView: View {
     @ObservedObject var store: UsageStore
+    @StateObject private var loginItem = LoginItemManager()
     @State private var showingHelp = false
     @AppStorage("petSkin") private var skinRaw = PetSkin.classic.rawValue
     @AppStorage("animationTier") private var animationTierRaw = AnimationTier.sparkling.rawValue
@@ -46,6 +47,8 @@ struct MenuContentView: View {
 
             Divider()
 
+            launchAtLoginRow
+
             HStack {
                 Button("Refresh") { store.refresh() }
                 Spacer()
@@ -73,6 +76,27 @@ struct MenuContentView: View {
             .accessibilityLabel(showingHelp ? "Close help" : "Help")
             .accessibilityHint("Explains moods, vitals, and mechanics")
         }
+    }
+
+    private var launchAtLoginRow: some View {
+        VStack(alignment: .leading, spacing: Metric.xs) {
+            Toggle(isOn: Binding(
+                get: { loginItem.isEnabled },
+                set: { loginItem.setEnabled($0) }
+            )) {
+                Label("Launch at login", systemImage: "power")
+                    .font(.system(.caption, design: .monospaced))
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+
+            if let error = loginItem.lastError {
+                Text(error)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            }
+        }
+        .onAppear { loginItem.refresh() }
     }
 
     private var statsBody: some View {

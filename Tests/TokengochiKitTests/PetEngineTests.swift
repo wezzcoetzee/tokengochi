@@ -211,4 +211,32 @@ private func now(atFraction f: Double) -> Double {
         #expect(state.peakWeekly == 50)
         #expect(vitals.animationTier == AnimationTier.unlocked(forPeakWeekly: 50))
     }
+
+    @Test func behindPaceWithoutResetTimeStarvesWhenSessionLow() {
+        var state = PetState()
+        let vitals = PetEngine.update(snapshot: snapshot(session: 10, weekly: 5), state: &state)
+        #expect(vitals.mood == .starving)
+    }
+
+    @Test func notBehindPaceWithoutResetTimeIsLonelyWhenSessionPastThreshold() {
+        var state = PetState()
+        let vitals = PetEngine.update(snapshot: snapshot(session: 30, weekly: 5), state: &state)
+        #expect(vitals.mood == .lonely)
+    }
+
+    @Test func overfedHappinessCapTightensEarlierInWindow() {
+        var early = PetState(lastSessionResetsAt: windowEnd)
+        let earlyVitals = PetEngine.update(
+            snapshot: snapshot(session: 96, weekly: 100,
+                               sessionResetsAt: windowEnd, updatedAt: now(atFraction: 0.2)),
+            state: &early)
+        var late = PetState(lastSessionResetsAt: windowEnd)
+        let lateVitals = PetEngine.update(
+            snapshot: snapshot(session: 96, weekly: 100,
+                               sessionResetsAt: windowEnd, updatedAt: now(atFraction: 0.6)),
+            state: &late)
+        #expect(earlyVitals.mood == .overfed)
+        #expect(lateVitals.mood == .overfed)
+        #expect(earlyVitals.happiness < lateVitals.happiness)
+    }
 }

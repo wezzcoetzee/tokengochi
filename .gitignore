@@ -15,3 +15,7 @@ dist/
 
 # Plans
 /plans
+/advisor-plans
+
+# Agent harness
+/.claude

@@ -47,12 +47,12 @@ public enum Mood: String {
 
     public var helpCondition: String {
         switch self {
-        case .sick: return "health < 40%"
+        case .sick: return "health < \(Int(PetEngine.sickHealthThreshold))%"
         case .overfed: return "session ≥ \(Int(PetEngine.overfedSessionThreshold))% with > 1h left"
         case .starving: return "behind pace this window"
-        case .thriving: return "happiness ≥ 70%"
-        case .okay: return "happiness ≥ 35%"
-        case .lonely: return "happiness < 35%"
+        case .thriving: return "happiness ≥ \(Int(PetEngine.thrivingHappinessThreshold))%"
+        case .okay: return "happiness ≥ \(Int(PetEngine.okayHappinessThreshold))%"
+        case .lonely: return "happiness < \(Int(PetEngine.okayHappinessThreshold))%"
         case .noData: return "no snapshot yet"
         }
     }
@@ -88,6 +88,14 @@ public struct Vitals {
     public let animationTier: AnimationTier
     public let peakWeekly: Double
 
+    public static func noData(poops: Int, health: Int, peakWeekly: Double) -> Vitals {
+        Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
+               health: health, poops: poops,
+               mood: .noData, weight: 0, hasData: false,
+               animationTier: AnimationTier.unlocked(forPeakWeekly: peakWeekly),
+               peakWeekly: peakWeekly)
+    }
+
     public var nextAnimationUnlock: (tier: AnimationTier, threshold: Double)? {
         guard let next = animationTier.next else { return nil }
         return (next, next.unlockThreshold)
@@ -121,14 +129,16 @@ public enum PetEngine {
     public static let overfedWindowFraction = 0.8
     public static let overfedHappinessFloor = 50.0
     public static let overfedHappinessCeiling = 90.0
+    public static let happinessWeeklyMultiplier = 1.1
+    public static let sickHealthThreshold = 40.0
+    public static let thrivingHappinessThreshold = 70.0
+    public static let okayHappinessThreshold = 35.0
 
     public static func update(snapshot: UsageSnapshot?, state: inout PetState) -> Vitals {
         guard let snapshot, let rawSession = snapshot.sessionPct else {
-            return Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
-                          health: health(forPoops: state.poops), poops: state.poops,
-                          mood: .noData, weight: 0, hasData: false,
-                          animationTier: AnimationTier.unlocked(forPeakWeekly: state.peakWeekly),
-                          peakWeekly: state.peakWeekly)
+            return Vitals.noData(poops: state.poops,
+                                 health: health(forPoops: state.poops),
+                                 peakWeekly: state.peakWeekly)
         }
 
         let clamp = { (value: Double) in min(100, max(0, value)) }
@@ -154,17 +164,17 @@ public enum PetEngine {
         let overfedSeverity = overfedSeverity(elapsed: elapsed)
         let behindPace = isBehindPace(session: session, elapsed: elapsed)
 
-        var happiness = min(100, weekly * 1.1)
+        var happiness = min(100, weekly * happinessWeeklyMultiplier)
         if overfed {
             let cap = overfedHappinessFloor + (1 - overfedSeverity) * (overfedHappinessCeiling - overfedHappinessFloor)
             happiness = min(happiness, cap)
         }
 
         let mood: Mood
-        if currentHealth < 40 { mood = .sick }
+        if currentHealth < Int(sickHealthThreshold) { mood = .sick }
         else if overfed { mood = .overfed }
-        else if happiness >= 70 { mood = .thriving }
-        else if happiness >= 35 { mood = .okay }
+        else if happiness >= thrivingHappinessThreshold { mood = .thriving }
+        else if happiness >= okayHappinessThreshold { mood = .okay }
         else if behindPace { mood = .starving }
         else { mood = .lonely }
 

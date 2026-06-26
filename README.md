@@ -57,6 +57,8 @@ swift test -Xswiftc -F -Xswiftc "$FW" -Xlinker -rpath -Xlinker "$FW" -Xlinker -r
 
 It lives in the menu bar (no Dock icon). It shows "no data yet" until a Claude Code session writes a snapshot.
 
+To have it start automatically when you log in, open the menu and turn on **Launch at login**. This registers the app as a macOS login item (via `SMAppService`); you can also see and toggle it under System Settings → General → Login Items. Launch-at-login requires the installed `.app` bundle — it has no effect when running the bare `.build/release/Tokengochi` binary.
+
 ## Package for distribution
 
 To produce a shareable `.app`, run:
