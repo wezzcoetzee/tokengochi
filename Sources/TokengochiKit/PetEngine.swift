@@ -125,6 +125,10 @@ public enum PetEngine {
     public static let cleanThreshold = 25.0
     public static let healthPerPoop = 20
     public static let sessionWindowSeconds = 5.0 * 3600
+    /// The OAuth usage endpoint returns the same window's `resets_at` with sub-second
+    /// jitter on every poll, so only an advance larger than this counts as a real new
+    /// window. Distinct 5-hour windows are always at least 5 hours apart.
+    public static let windowRollTolerance = 60.0
     public static let overfedSessionThreshold = 90.0
     public static let overfedWindowFraction = 0.8
     public static let overfedHappinessFloor = 50.0
@@ -194,7 +198,7 @@ public enum PetEngine {
             state.lastSessionResetsAt = resetsAt
             return
         }
-        guard resetsAt > last else { return }
+        guard resetsAt > last + windowRollTolerance else { return }
         let engagement = state.windowPeakSession - (state.windowStartSession ?? 0)
         let windowWasUsed = engagement >= minEngagedSessionDelta
         if windowWasUsed && state.windowPeakSession < wastedWindowThreshold { state.poops += 1 }

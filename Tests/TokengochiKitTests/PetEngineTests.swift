@@ -50,6 +50,15 @@ private func now(atFraction f: Double) -> Double {
         #expect(!state.windowCleaned)
     }
 
+    @Test func subSecondResetJitterDoesNotRollWindow() {
+        var state = PetState(lastSessionResetsAt: 1000, windowStartSession: 5, windowPeakSession: 30)
+        _ = PetEngine.update(snapshot: snapshot(session: 32, sessionResetsAt: 1000.9), state: &state)
+
+        #expect(state.poops == 0)
+        #expect(state.lastSessionResetsAt == 1000)
+        #expect(state.windowPeakSession == 32)
+    }
+
     @Test func sleptThroughWindowWithResidualOnlyDoesNotAddPoop() {
         var state = PetState(lastSessionResetsAt: 1000,
                              windowStartSession: 12, windowPeakSession: 12)
