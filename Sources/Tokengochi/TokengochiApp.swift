@@ -4,20 +4,22 @@ import TokengochiKit
 @main
 struct TokengochiApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @StateObject private var store = UsageStore()
+    @StateObject private var claudeStore = UsageStore(provider: .claude)
+    @StateObject private var codexStore = UsageStore(provider: .codex)
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContentView(store: store)
+            MultiProviderMenuContentView(stores: visibleStores)
         } label: {
-            let vitals = store.vitals
-            if vitals.hasData {
-                Label("\(Int(vitals.session))%", systemImage: vitals.mood.symbolName)
-            } else {
-                Label("—", systemImage: Mood.noData.symbolName)
-            }
+            CombinedMenuBarLabel(stores: visibleStores)
         }
         .menuBarExtraStyle(.window)
+    }
+
+    private var visibleStores: [UsageStore] {
+        let stores = [claudeStore, codexStore]
+        let visible = stores.filter { $0.vitals.hasData || ProviderAvailability.isAvailable($0.provider) }
+        return visible.isEmpty ? [claudeStore] : visible
     }
 }
 

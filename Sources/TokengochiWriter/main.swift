@@ -22,10 +22,10 @@ let snapshot = SnapshotMerge.statuslineObservation(
     fallbackWeeklyPct: sevenDay.pct,
     fallbackSessionResetsAt: fiveHour.resetsAt,
     fallbackWeeklyResetsAt: sevenDay.resetsAt,
-    into: UsageSnapshot.load(),
+    into: UsageSnapshot.load(provider: .claude),
     at: Date().timeIntervalSince1970
 )
-try? snapshot.save()
+try? snapshot.save(provider: .claude)
 
 let passthrough = ProcessInfo.processInfo.environment["TOKENGOCHI_PASSTHROUGH_CMD"]
 if let passthrough, !passthrough.isEmpty {

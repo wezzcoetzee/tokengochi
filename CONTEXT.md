@@ -6,7 +6,7 @@ reviews share one vocabulary.
 
 ## Core concepts
 
-- **Snapshot** — the single `snapshot.json` file holding the latest usage reading:
+- **Snapshot** — a provider-specific JSON file holding the latest usage reading:
   session/weekly utilization, context, reset times, model/effort/fast-mode. Modelled by
   `UsageSnapshot`.
 - **Pet state** — the persisted game state that survives between readings: messes, the
@@ -16,15 +16,18 @@ reviews share one vocabulary.
 - **Window** — a 5-hour session window. A window is *wasted* when it ends under the
   engagement threshold, which leaves a *mess*.
 
-## Producers (two writers, one snapshot)
+## Producers
 
 - **Poller** (`TokengochiPoller`) — polls the OAuth usage endpoint and owns
-  session/weekly utilization and both reset times.
+  Claude session/weekly utilization and both reset times.
 - **Writer** (`TokengochiWriter`) — reads the Claude Code statusline payload and owns
   context/model/effort/fast-mode.
+- **Codex writer** (`TokengochiCodexWriter`) — reads Codex JSONL or hook JSON from
+  stdin and accumulates local token usage into an estimated Codex snapshot.
 - **Snapshot merge** (`SnapshotMerge`) — owns the field-ownership rule that lets the two
-  producers write the same snapshot without clobbering each other. Each producer hands it
-  only the fields it owns; it preserves the other's from the previous snapshot.
+  Claude producers write the same Claude snapshot without clobbering each other. Each
+  producer hands it only the fields it owns; it preserves the other's from the previous
+  snapshot.
 - **Rate-limit window** (`RateLimitWindow`) — extracts a window's percentage and reset
   time from a producer's vendor JSON shape (the usage endpoint's `utilization` vs the
   statusline's `used_percentage`).

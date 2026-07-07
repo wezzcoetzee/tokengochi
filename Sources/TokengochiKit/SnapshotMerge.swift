@@ -1,6 +1,6 @@
 import Foundation
 
-/// Owns the field-ownership rule that lets two producers write `snapshot.json`
+/// Owns the field-ownership rule that lets two Claude producers write one provider snapshot
 /// without clobbering each other.
 ///
 /// `TokengochiPoller` owns session/weekly utilization and both reset times (rolling
@@ -18,6 +18,9 @@ public enum SnapshotMerge {
         into previous: UsageSnapshot?, at now: Double
     ) -> UsageSnapshot {
         UsageSnapshot(
+            provider: .claude,
+            source: .claudePoller,
+            measurementKind: .exactQuota,
             sessionPct: sessionPct,
             weeklyPct: weeklyPct,
             contextPct: previous?.contextPct,
@@ -36,6 +39,9 @@ public enum SnapshotMerge {
         into previous: UsageSnapshot?, at now: Double
     ) -> UsageSnapshot {
         UsageSnapshot(
+            provider: .claude,
+            source: .claudeStatusline,
+            measurementKind: previous?.measurementKind ?? .exactQuota,
             sessionPct: previous?.sessionPct ?? fallbackSessionPct,
             weeklyPct: previous?.weeklyPct ?? fallbackWeeklyPct,
             contextPct: contextPct,

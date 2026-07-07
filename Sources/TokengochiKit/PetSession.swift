@@ -9,10 +9,15 @@ public protocol SnapshotStore {
 }
 
 public struct DiskSnapshotStore: SnapshotStore {
-    public init() {}
-    public func loadSnapshot() -> UsageSnapshot? { UsageSnapshot.load() }
-    public func loadPetState() -> PetState { PetState.load() }
-    public func savePetState(_ state: PetState) { state.save() }
+    private let provider: UsageProvider
+
+    public init(provider: UsageProvider = .claude) {
+        self.provider = provider
+    }
+
+    public func loadSnapshot() -> UsageSnapshot? { UsageSnapshot.load(provider: provider) }
+    public func loadPetState() -> PetState { PetState.load(provider: provider) }
+    public func savePetState(_ state: PetState) { state.save(provider: provider) }
 }
 
 /// One refresh tick: load the latest snapshot, advance pet state through `PetEngine`,

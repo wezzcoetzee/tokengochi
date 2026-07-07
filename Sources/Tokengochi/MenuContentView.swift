@@ -1,11 +1,53 @@
 import SwiftUI
 import TokengochiKit
 
+struct CombinedMenuBarLabel: View {
+    let stores: [UsageStore]
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(stores, id: \.provider) { store in
+                HStack(spacing: 2) {
+                    Image(systemName: store.vitals.mood.symbolName)
+                    Text(store.provider == .claude ? "C" : "X")
+                    if store.vitals.hasData {
+                        Text("\(Int(store.vitals.session))%")
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct MultiProviderMenuContentView: View {
+    let stores: [UsageStore]
+
+    var body: some View {
+        Group {
+            if stores.count > 1 {
+                HStack(alignment: .top, spacing: 0) {
+                    ForEach(Array(stores.enumerated()), id: \.element.provider) { index, store in
+                        MenuContentView(store: store)
+                        if index < stores.count - 1 {
+                            Divider()
+                                .padding(.vertical, Metric.content)
+                        }
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            } else if let store = stores.first {
+                MenuContentView(store: store)
+            }
+        }
+    }
+}
+
 struct MenuContentView: View {
     @ObservedObject var store: UsageStore
     @StateObject private var loginItem = LoginItemManager()
     @State private var showingHelp = false
-    @AppStorage("petSkin") private var skinRaw = PetSkin.classic.rawValue
+    @AppStorage("petSkin") private var claudeSkinRaw = PetSkin.classic.rawValue
+    @AppStorage("petSkinCodex") private var codexSkinRaw = PetSkin.classic.rawValue
     @AppStorage("animationTier") private var animationTierRaw = AnimationTier.sparkling.rawValue
 
     private var unlockedTier: AnimationTier { store.vitals.animationTier }
@@ -25,14 +67,25 @@ struct MenuContentView: View {
         AnimationTier.allCases.filter { $0.rawValue <= unlockedTier.rawValue }
     }
 
-    private var selectedSkin: PetSkin { PetSkin(rawValue: skinRaw) ?? .classic }
+    private var selectedSkin: PetSkin {
+        let choices = PetSkin.providerChoices(for: store.provider)
+        switch store.provider {
+        case .claude:
+            let skin = PetSkin(rawValue: claudeSkinRaw) ?? store.provider.defaultSkin
+            return choices.contains(skin) ? skin : store.provider.defaultSkin
+        case .codex:
+            let skin = PetSkin(rawValue: codexSkinRaw) ?? store.provider.defaultSkin
+            return choices.contains(skin) ? skin : store.provider.defaultSkin
+        }
+    }
 
-    private var claudeUnlocked: Bool {
-        PetSkin.claude.isUnlocked(forPeakWeekly: store.vitals.peakWeekly)
+    private var providerSkinUnlocked: Bool {
+        store.provider.providerSkin.isUnlocked(forPeakWeekly: store.vitals.peakWeekly)
     }
 
     private var effectiveSkin: PetSkin {
-        selectedSkin == .claude && claudeUnlocked ? .claude : .classic
+        let providerSkin = store.provider.providerSkin
+        return selectedSkin == providerSkin && providerSkinUnlocked ? providerSkin : .classic
     }
 
     var body: some View {
@@ -64,7 +117,7 @@ struct MenuContentView: View {
 
     private var header: some View {
         HStack {
-            Text("Tokengochi").font(.headline)
+            Text(store.provider.displayName).font(.headline)
             Spacer()
             Button {
                 showingHelp.toggle()
@@ -123,6 +176,8 @@ struct MenuContentView: View {
 
             sessionInfoRows
 
+            codexInfoRows
+
             animationUnlockRow
 
             Text(store.freshnessText)
@@ -136,13 +191,14 @@ struct MenuContentView: View {
             HStack(spacing: Metric.sm) {
                 Label("Pet", systemImage: "pawprint.fill")
                 Spacer()
-                skinButton(.classic)
-                skinButton(.claude)
+                ForEach(PetSkin.providerChoices(for: store.provider), id: \.self) { skin in
+                    skinButton(skin)
+                }
             }
             .font(.system(.caption, design: .monospaced))
 
-            if !claudeUnlocked {
-                Text("Claude unlocks at \(Int(PetSkin.claude.unlockThreshold))% weekly peak")
+            if !providerSkinUnlocked {
+                Text("\(store.provider.providerSkin.displayName) unlocks at \(Int(store.provider.providerSkin.unlockThreshold))% weekly peak")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -152,13 +208,20 @@ struct MenuContentView: View {
 
     @ViewBuilder
     private func skinButton(_ skin: PetSkin) -> some View {
-        let locked = skin == .claude && !claudeUnlocked
+        let providerSkin = store.provider.providerSkin
+        let locked = skin == providerSkin && !providerSkinUnlocked
         let isSelected = effectiveSkin == skin
         Button {
-            skinRaw = skin.rawValue
+            switch store.provider {
+            case .claude:
+                claudeSkinRaw = skin.rawValue
+            case .codex:
+                codexSkinRaw = skin.rawValue
+            }
         } label: {
             HStack(spacing: Metric.xs) {
                 if locked { Image(systemName: "lock.fill") }
+                if skin == .codex { Image(systemName: "terminal") }
                 Text(skin.displayName)
             }
             .font(.system(.caption, design: .monospaced))
@@ -173,7 +236,7 @@ struct MenuContentView: View {
         .foregroundStyle(locked ? Color.secondary : .primary)
         .accessibilityLabel("\(skin.displayName) pet")
         .accessibilityValue(locked ? "locked" : (isSelected ? "selected" : "not selected"))
-        .accessibilityHint(locked ? "Reach \(Int(PetSkin.claude.unlockThreshold)) percent weekly usage to unlock" : "")
+        .accessibilityHint(locked ? "Reach \(Int(providerSkin.unlockThreshold)) percent weekly usage to unlock" : "")
     }
 
     @ViewBuilder
@@ -203,6 +266,42 @@ struct MenuContentView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(name)
         .accessibilityValue(value)
+    }
+
+    @ViewBuilder
+    private var codexInfoRows: some View {
+        if store.provider == .codex {
+            VStack(spacing: Metric.xs) {
+                if let totalTokens = totalCodexTokens {
+                    infoRow("Tokens", Self.tokenLabel(totalTokens), systemImage: "number")
+                }
+                if let reasoning = store.reasoningTokens, reasoning > 0 {
+                    infoRow("Reasoning", Self.tokenLabel(reasoning), systemImage: "brain")
+                }
+                if let resets = store.codexResetsAvailable {
+                    infoRow("Resets", "\(resets) left", systemImage: "arrow.clockwise")
+                } else if store.vitals.hasData {
+                    infoRow("Resets", "Unknown", systemImage: "arrow.clockwise")
+                }
+                if let resetText = store.codexNextResetText {
+                    infoRow("Next reset", resetText, systemImage: "calendar")
+                }
+                if store.measurementKind == .estimatedBudget || store.measurementKind == .estimatedResets {
+                    infoRow("Source", "Estimated", systemImage: "waveform.path.ecg")
+                }
+            }
+        }
+    }
+
+    private var totalCodexTokens: Int? {
+        let total = (store.inputTokens ?? 0) + (store.outputTokens ?? 0) + (store.reasoningTokens ?? 0)
+        return total > 0 ? total : nil
+    }
+
+    private static func tokenLabel(_ value: Int) -> String {
+        if value >= 1_000_000 { return "\(value / 1_000_000)m" }
+        if value >= 1_000 { return "\(value / 1_000)k" }
+        return "\(value)"
     }
 
     private static func effortLabel(_ level: String) -> String {

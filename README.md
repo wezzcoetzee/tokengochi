@@ -1,28 +1,30 @@
 # Tokengochi
 
-A macOS menu-bar virtual pet that *is* your Claude usage. Session usage feeds it, weekly usage keeps it happy, and neglect (wasting your session window) leaves a mess you can only clean by coming back and using Claude.
+A macOS menu-bar virtual pet that *is* your Claude and Codex usage. Session usage feeds it, weekly usage keeps it happy, and neglect (wasting your session window) leaves a mess you can only clean by coming back and using your coding agents.
 
 <p align="center">
   <img src="assets/screenshot-classic.png" width="280" alt="Classic skin" />
   &nbsp;&nbsp;
-  <img src="assets/screenshot-claude.png" width="280" alt="Claude skin" />
+  <img src="assets/screenshot-claude.png" width="280" alt="Codex skin" />
 </p>
 
 ## Architecture
 
 ```
-Claude Code statusline ──stdin JSON──▶ TokengochiWriter ──┐
-                                                            ├──writes──▶ snapshot.json
-Anthropic OAuth usage API ◀──polls── TokengochiPoller ────┘                │ polled
-                                                                            ▼
-                                                                 Tokengochi.app (menu bar)
+Claude Code statusline ──stdin JSON──▶ TokengochiWriter ──────▶ snapshot-claude.json
+Anthropic OAuth usage API ◀──polls── TokengochiPoller ────────▶ snapshot-claude.json
+Codex JSONL / hook JSON ───stdin JSON──▶ TokengochiCodexWriter ─▶ snapshot-codex.json
+                                                                          │ polled
+                                                                          ▼
+                                                               Tokengochi.app (menu bar)
 ```
 
-There are two ways to feed the snapshot — use whichever matches how you run Claude:
+There are separate snapshots per provider:
 
-- **TokengochiWriter** — a statusline command interactive Claude Code runs. It captures the `rate_limits` / `context_window` JSON Claude Code pipes to stdin and writes it to `~/Library/Application Support/Tokengochi/snapshot.json`. It can chain to your existing statusline so you keep it (see below). This is the only source that includes **context-window %**, but it only fires while you're in an interactive Claude Code TUI session.
+- **TokengochiWriter** — a statusline command interactive Claude Code runs. It captures the `rate_limits` / `context_window` JSON Claude Code pipes to stdin and writes it to `~/Library/Application Support/Tokengochi/snapshot-claude.json`. It can chain to your existing statusline so you keep it (see below). This is the only source that includes **context-window %**, but it only fires while you're in an interactive Claude Code TUI session.
 - **TokengochiPoller** — a standalone fetcher for everyone who *doesn't* sit in interactive Claude Code (e.g. you drive your subscription through T3 Code, the Agent SDK, or anything that wraps Claude Code). It reads your Claude OAuth token from the macOS Keychain and calls Anthropic's `/api/oauth/usage` endpoint — the same data behind Claude Code's `/usage` — then writes the snapshot. It fills session + weekly %; context % is per-conversation and not available here. Run it on a schedule (see below).
-- **Tokengochi** — the menu-bar app. Polls the snapshot, runs the pet engine, draws the LCD creature. It neither knows nor cares which writer produced the snapshot.
+- **TokengochiCodexWriter** — reads Codex JSONL events from `codex exec --json` output, or hook JSON containing usage payloads, and writes `~/Library/Application Support/Tokengochi/snapshot-codex.json`. Codex values are estimated from local observed token activity unless an exact quota source is added later.
+- **Tokengochi** — the menu-bar app. Polls provider snapshots, runs the pet engine, and shows one menu-bar item. The popover shows provider panels side by side when both are locally available, or a single panel when only one provider is available.
 - **TokengochiKit** — shared model + the `PetEngine` care logic.
 
 ## Build
@@ -31,7 +33,7 @@ There are two ways to feed the snapshot — use whichever matches how you run Cl
 swift build -c release
 ```
 
-Binaries land in `.build/release/Tokengochi` and `.build/release/TokengochiWriter`.
+Binaries land in `.build/release/`.
 
 ## Test
 
@@ -55,7 +57,7 @@ swift test -Xswiftc -F -Xswiftc "$FW" -Xlinker -rpath -Xlinker "$FW" -Xlinker -r
 .build/release/Tokengochi
 ```
 
-It lives in the menu bar (no Dock icon). It shows "no data yet" until a Claude Code session writes a snapshot.
+It lives in the menu bar (no Dock icon). It shows one menu item with the active provider status icons.
 
 To have it start automatically when you log in, open the menu and turn on **Launch at login**. This registers the app as a macOS login item (via `SMAppService`); you can also see and toggle it under System Settings → General → Login Items. Launch-at-login requires the installed `.app` bundle — it has no effect when running the bare `.build/release/Tokengochi` binary.
 
@@ -67,7 +69,7 @@ To produce a shareable `.app`, run:
 ./make-app.sh 0.1.0
 ```
 
-This builds the release binaries, assembles `dist/Tokengochi.app`, ad-hoc signs it, and writes two shareable artifacts: a `dist/Tokengochi-0.1.0.zip` and a `dist/Tokengochi-0.1.0.dmg` (a drag-to-`Applications` disk image). The bundle ships all three executables — the menu-bar app in `Contents/MacOS/`, and `TokengochiWriter` + `TokengochiPoller` in `Contents/Helpers/` — so a single download has everything. Hand people the `.dmg` for the familiar drag-to-install flow, or the `.zip` if they'd rather just unzip.
+This builds the release binaries, assembles `dist/Tokengochi.app`, ad-hoc signs it, and writes two shareable artifacts: a `dist/Tokengochi-0.1.0.zip` and a `dist/Tokengochi-0.1.0.dmg` (a drag-to-`Applications` disk image). The bundle ships the menu-bar app in `Contents/MacOS/`, and `TokengochiWriter`, `TokengochiPoller`, and `TokengochiCodexWriter` in `Contents/Helpers/`, so a single download has everything. Hand people the `.dmg` for the familiar drag-to-install flow, or the `.zip` if they'd rather just unzip.
 
 To give it an icon, drop a 1024×1024 `AppIcon.png` in the repo root; the script generates `AppIcon.icns` from it on the next run (or commit your own `AppIcon.icns` directly).
 
@@ -89,6 +91,24 @@ Tokengochi reads data that only Claude Code can provide, via its statusline hook
 If you don't set `TOKENGOCHI_PASSTHROUGH_CMD`, the writer prints a minimal `🐣 S:.. W:..` line as your statusline.
 
 If you installed the packaged app, the writer lives inside the bundle — point the command at `/Applications/Tokengochi.app/Contents/Helpers/TokengochiWriter` instead of the `.build` path.
+
+## Feed Codex usage
+
+Codex support is local and estimated in this version. Pipe JSONL output from `codex exec --json` into the writer:
+
+```sh
+codex exec --json "summarize this repo" | .build/release/TokengochiCodexWriter
+```
+
+The writer accumulates observed `turn.completed.usage` token fields into `snapshot-codex.json`. You can tune the estimated percentage budgets:
+
+```sh
+TOKENGOCHI_CODEX_SESSION_TOKEN_BUDGET=200000 \
+TOKENGOCHI_CODEX_WEEKLY_TOKEN_BUDGET=2000000 \
+codex exec --json "summarize this repo" | .build/release/TokengochiCodexWriter
+```
+
+If you installed the packaged app, use `/Applications/Tokengochi.app/Contents/Helpers/TokengochiCodexWriter`.
 
 ## Run the poller (no interactive Claude Code needed)
 
@@ -124,4 +144,4 @@ It polls every 120s and logs to `~/Library/Logs/tokengochi-poller.log`. To stop:
 
 ## Known constraint
 
-The poller depends on a valid OAuth token kept fresh in your Keychain by Claude Code / T3 Code — it does not implement the token-refresh flow itself, so if you go a long time without launching either, polls will 401 until you do. Context-window % is only available via the statusline writer (it's per-conversation, not an account-wide limit). Between successful updates the app shows last-known values with an "updated Nm ago" indicator and uses each limit's reset timestamp to roll windows over.
+The Claude poller depends on a valid OAuth token kept fresh in your Keychain by Claude Code / T3 Code — it does not implement the token-refresh flow itself, so if you go a long time without launching either, polls will 401 until you do. Context-window % is only available via the statusline writer (it's per-conversation, not an account-wide limit). Codex percentages are estimated from local JSONL token observations, not exact account quota. Between successful updates the app shows last-known values with an "updated Nm ago" indicator and uses each limit's reset timestamp to roll windows over where available.

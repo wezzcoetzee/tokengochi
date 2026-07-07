@@ -30,18 +30,24 @@ public struct PetState: Codable, Equatable {
         peakWeekly = try container.decodeIfPresent(Double.self, forKey: .peakWeekly) ?? 0
     }
 
-    public static func load() -> PetState {
-        guard let data = try? Data(contentsOf: AppPaths.petStateFile),
+    public static func load(provider: UsageProvider = .claude) -> PetState {
+        let file = AppPaths.petStateFile(for: provider)
+        if let data = try? Data(contentsOf: file),
+           let state = try? JSONDecoder().decode(PetState.self, from: data) {
+            return state
+        }
+        guard provider == .claude,
+              let data = try? Data(contentsOf: AppPaths.petStateFile),
               let state = try? JSONDecoder().decode(PetState.self, from: data) else {
             return PetState()
         }
         return state
     }
 
-    public func save() {
+    public func save(provider: UsageProvider = .claude) {
         try? AppPaths.ensureSupportDirectory()
         if let data = try? JSONEncoder().encode(self) {
-            try? data.write(to: AppPaths.petStateFile, options: .atomic)
+            try? data.write(to: AppPaths.petStateFile(for: provider), options: .atomic)
         }
     }
 }

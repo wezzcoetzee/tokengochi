@@ -9,6 +9,7 @@ let package = Package(
         .executableTarget(name: "Tokengochi", dependencies: ["TokengochiKit"]),
         .executableTarget(name: "TokengochiWriter", dependencies: ["TokengochiKit"]),
         .executableTarget(name: "TokengochiPoller", dependencies: ["TokengochiKit"]),
+        .executableTarget(name: "TokengochiCodexWriter", dependencies: ["TokengochiKit"]),
         .testTarget(name: "TokengochiKitTests", dependencies: ["TokengochiKit"])
     ]
 )
