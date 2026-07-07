@@ -213,6 +213,14 @@ private func now(atFraction f: Double) -> Double {
         #expect(PetEngine.update(snapshot: snapshot(session: 50, weekly: 10), state: &lonely).mood == .lonely)
     }
 
+    @Test func sessionMoodTracksSessionNotWeekly() {
+        var heavySession = PetState()
+        let vitals = PetEngine.update(snapshot: snapshot(session: 74, weekly: 10), state: &heavySession)
+
+        #expect(vitals.mood == .lonely)
+        #expect(vitals.sessionMood == .thriving)
+    }
+
     @Test func peakWeeklyMonotonicAndDrivesAnimationTier() {
         var state = PetState(peakWeekly: 50)
         let vitals = PetEngine.update(snapshot: snapshot(session: 50, weekly: 10), state: &state)

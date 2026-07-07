@@ -83,6 +83,7 @@ public struct Vitals {
     public let health: Int
     public let poops: Int
     public let mood: Mood
+    public let sessionMood: Mood
     public let weight: Double
     public let hasData: Bool
     public let animationTier: AnimationTier
@@ -91,7 +92,7 @@ public struct Vitals {
     public static func noData(poops: Int, health: Int, peakWeekly: Double) -> Vitals {
         Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
                health: health, poops: poops,
-               mood: .noData, weight: 0, hasData: false,
+               mood: .noData, sessionMood: .noData, weight: 0, hasData: false,
                animationTier: AnimationTier.unlocked(forPeakWeekly: peakWeekly),
                peakWeekly: peakWeekly)
     }
@@ -182,12 +183,21 @@ public enum PetEngine {
         else if behindPace { mood = .starving }
         else { mood = .lonely }
 
+        let sessionMood: Mood
+        if currentHealth < Int(sickHealthThreshold) { sessionMood = .sick }
+        else if overfed { sessionMood = .overfed }
+        else if session >= thrivingHappinessThreshold { sessionMood = .thriving }
+        else if session >= okayHappinessThreshold { sessionMood = .okay }
+        else if behindPace { sessionMood = .starving }
+        else { sessionMood = .lonely }
+
         let baseWeight = min(0.7, weekly / 100 * 0.7)
         let weight = min(1.0, baseWeight + (overfed ? overfedSeverity * 0.3 : 0))
 
         return Vitals(session: session, weekly: weekly, context: context,
                       hunger: hunger, happiness: happiness, health: currentHealth,
-                      poops: state.poops, mood: mood, weight: weight, hasData: true,
+                      poops: state.poops, mood: mood, sessionMood: sessionMood,
+                      weight: weight, hasData: true,
                       animationTier: AnimationTier.unlocked(forPeakWeekly: state.peakWeekly),
                       peakWeekly: state.peakWeekly)
     }

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture review — tokengochi</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16" integrity="sha384-mS5Uq7sE90lgbBDN8xgf34ibEgbZo4gB3tfLY40ZRle+M188BQw8onzNHg6GUZaA" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js" integrity="sha384-rbtjAdnIQE/aQJGEgXrVUlMibdfTSa4PQju4HDhN3sR2PmaKFzhEafuePsl9H/9I" crossorigin="anonymous"></script>
+    <script>
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .seam { stroke-dasharray: 4 4; }
+      .deep-box { background: linear-gradient(135deg, #0f172a, #1e293b); }
+      .mass-iface { background: repeating-linear-gradient(45deg, #fbbf24, #fbbf24 4px, #fde68a 4px, #fde68a 8px); }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
+      <header class="space-y-3">
+        <h1 class="font-serif text-3xl font-semibold tracking-tight">Architecture review — tokengochi</h1>
+        <p class="text-sm text-slate-500">2026-07-03 · 5 candidates</p>
+        <div class="flex flex-wrap gap-4 text-xs text-slate-600 pt-1">
+          <span class="inline-flex items-center gap-1.5"><span class="inline-block w-4 h-3 border border-slate-500 bg-white"></span> module</span>
+          <span class="inline-flex items-center gap-1.5"><svg width="24" height="6"><line x1="0" y1="3" x2="24" y2="3" stroke="#64748b" stroke-width="1.5" class="seam"/></svg> seam</span>
+          <span class="inline-flex items-center gap-1.5"><svg width="24" height="6"><line x1="0" y1="3" x2="24" y2="3" stroke="#dc2626" stroke-width="2"/></svg> leakage</span>
+          <span class="inline-flex items-center gap-1.5"><span class="inline-block w-4 h-3 deep-box rounded-sm"></span> deep module</span>
+          <span class="inline-flex items-center gap-1.5"><span class="inline-block w-4 h-3 mass-iface border border-amber-500"></span> interface surface</span>
+        </div>
+      </header>
+
+      <section id="candidates" class="space-y-10">
+
+        <!-- ══════════════════ CANDIDATE 1 ══════════════════ -->
+        <article id="c1" class="rounded-xl border border-slate-200 bg-white shadow-sm p-8 space-y-6">
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="font-serif text-2xl font-semibold">1 · Collapse the vendor-JSON → Snapshot pipeline into one deep module per producer</h2>
+            <div class="flex gap-2 shrink-0">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1">Strong</span>
+              <span class="rounded-full bg-slate-100 text-slate-600 text-xs px-3 py-1">in-process</span>
+            </div>
+          </div>
+
+          <p class="font-mono text-sm text-slate-600">
+            Sources/TokengochiKit/SnapshotMerge.swift · RateLimitWindow.swift · UsageParsing.swift<br/>
+            Sources/TokengochiPoller/main.swift:60–71 · Sources/TokengochiWriter/main.swift:8–27
+          </p>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">Before — callers compose three shallow modules</p>
+              <pre class="mermaid">
+flowchart TB
+  P["Poller main.swift<br/>(untestable)"] --> RW1[RateLimitWindow]
+  P --> SM1["Snapshot merge<br/>5-arg observation"]
+  P -.-> J1["raw dict digging"]
+  W["Writer main.swift<br/>(untestable)"] --> RW2[RateLimitWindow]
+  W --> SM2["Snapshot merge<br/>9-arg observation"]
+  W -.-> J2["raw dict digging"]
+  RW1 --> UP[UsageParsing]
+  RW2 --> UP
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class P,W,J1,J2 leak
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4 flex flex-col">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">After — one interface per producer shape</p>
+              <div class="flex-1 flex flex-col items-center justify-center gap-3 py-2">
+                <div class="flex gap-6 text-xs uppercase tracking-wider text-slate-500">
+                  <span>Poller main</span><span>Writer main</span>
+                </div>
+                <svg width="200" height="28"><line x1="55" y1="0" x2="95" y2="28" stroke="#334155" stroke-width="1.5"/><line x1="145" y1="0" x2="105" y2="28" stroke="#334155" stroke-width="1.5"/></svg>
+                <div class="deep-box rounded-lg text-white w-72 p-4 text-center">
+                  <p class="text-xs uppercase tracking-wider text-emerald-300">Snapshot builder (deep)</p>
+                  <p class="font-mono text-xs mt-1">fromUsageEndpoint(json, prev, at)<br/>fromStatusline(json, prev, at)</p>
+                  <p class="text-[10px] text-slate-400 mt-2">RateLimitWindow · UsageParsing · field-ownership merge · dict digging — all internal</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <dl class="space-y-2 text-sm">
+            <div><dt class="font-semibold inline">Problem.</dt> <dd class="inline">One concept — vendor JSON in, Snapshot out — is sliced into three shallow modules; both producers re-compose the slices by hand, in untestable <code class="font-mono">main.swift</code> files. Snapshot merge's 9-argument interface is nearly as complex as its implementation.</dd></div>
+            <div><dt class="font-semibold inline">Solution.</dt> <dd class="inline">One deep Kit entry point per producer shape, taking raw JSON plus the previous Snapshot; it absorbs the parsing, the per-source shape, the field-ownership rule, and the dict digging now inlined in both executables.</dd></div>
+          </dl>
+
+          <div>
+            <p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Wins</p>
+            <ul class="text-sm space-y-1 list-disc list-inside marker:text-emerald-500">
+              <li>Leverage: one interface, two producers</li>
+              <li>Interface shrinks: 9 args → 3</li>
+              <li>Whole JSON→Snapshot path becomes testable</li>
+              <li>Deletes duplicated compose dance in both mains</li>
+            </ul>
+          </div>
+          <p class="text-xs text-slate-500">Deletion test: delete RateLimitWindow or Snapshot merge today and their complexity reappears in <em>both</em> producers — they earn their keep, but at the wrong altitude. The new module concentrates it once.</p>
+        </article>
+
+        <!-- ══════════════════ CANDIDATE 2 ══════════════════ -->
+        <article id="c2" class="rounded-xl border border-slate-200 bg-white shadow-sm p-8 space-y-6">
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="font-serif text-2xl font-semibold">2 · Pull the Poller's fetch policy behind a testable seam</h2>
+            <div class="flex gap-2 shrink-0">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1">Strong</span>
+              <span class="rounded-full bg-slate-100 text-slate-600 text-xs px-3 py-1">ports &amp; adapters</span>
+            </div>
+          </div>
+
+          <p class="font-mono text-sm text-slate-600">Sources/TokengochiPoller/main.swift (110 lines, zero tests)</p>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">Before — cross-section: policy woven through I/O</p>
+              <div class="space-y-1">
+                <div class="h-11 border-l-4 border-red-600 bg-red-50 px-3 flex items-center justify-between"><span class="text-xs uppercase tracking-wider">keychain subprocess</span><span class="text-[10px] font-mono text-slate-500">main.swift:11–30</span></div>
+                <div class="h-11 border-l-4 border-red-600 bg-red-50 px-3 flex items-center justify-between"><span class="text-xs uppercase tracking-wider">URLSession + semaphore</span><span class="text-[10px] font-mono text-slate-500">:32–58</span></div>
+                <div class="h-11 border-l-4 border-amber-500 bg-amber-50 px-3 flex items-center justify-between"><span class="text-xs uppercase tracking-wider">HTTP status → hint policy</span><span class="text-[10px] font-mono text-slate-500">:46 (logic!)</span></div>
+                <div class="h-11 border-l-4 border-amber-500 bg-amber-50 px-3 flex items-center justify-between"><span class="text-xs uppercase tracking-wider">exponential backoff schedule</span><span class="text-[10px] font-mono text-slate-500">:104 (logic!)</span></div>
+                <div class="h-11 border-l-4 border-slate-400 bg-white px-3 flex items-center justify-between"><span class="text-xs uppercase tracking-wider">snapshot(from:) — the one pure slice</span><span class="text-[10px] font-mono text-slate-500">:60–71</span></div>
+              </div>
+              <p class="text-[11px] text-red-700 mt-2">Every band lives in one script file no test target can import.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4 flex flex-col">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">After — Poller module in Kit, fetch as adapter</p>
+              <div class="flex-1 flex flex-col items-center justify-center gap-2">
+                <div class="border border-slate-400 bg-white rounded px-4 py-2 text-xs uppercase tracking-wider">main.swift — wiring only</div>
+                <svg width="20" height="20"><line x1="10" y1="0" x2="10" y2="20" stroke="#334155" stroke-width="1.5"/></svg>
+                <div class="deep-box rounded-lg text-white w-80 p-4">
+                  <p class="text-xs uppercase tracking-wider text-emerald-300 text-center">Usage poller (deep, in Kit)</p>
+                  <p class="text-[11px] text-slate-300 text-center mt-1">backoff schedule · status→hint policy · poll loop state — pure, tested</p>
+                  <div class="border-t border-dashed border-slate-500 mt-3 pt-2 flex justify-around text-[10px] text-slate-300">
+                    <span>fetch adapter (URLSession)</span>
+                    <span>fetch adapter (in-memory, tests)</span>
+                  </div>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Two adapters = real seam.</p>
+              </div>
+            </div>
+          </div>
+
+          <dl class="space-y-2 text-sm">
+            <div><dt class="font-semibold inline">Problem.</dt> <dd class="inline">The Poller interleaves keychain I/O, network I/O, the 401→"token expired" hint policy, and the backoff schedule in top-level script code — real behaviour with no locality and no tests.</dd></div>
+            <div><dt class="font-semibold inline">Solution.</dt> <dd class="inline">A Usage poller module in TokengochiKit with an injectable fetch adapter; backoff and status-hint policy become pure implementation behind a small interface, and <code class="font-mono">main.swift</code> shrinks to wiring.</dd></div>
+          </dl>
+
+          <div>
+            <p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Wins</p>
+            <ul class="text-sm space-y-1 list-disc list-inside marker:text-emerald-500">
+              <li>Locality: retry bugs concentrate in one module</li>
+              <li>Backoff schedule finally unit-tested</li>
+              <li>Interface is the test surface</li>
+              <li>Same seam shape as Snapshot store</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- ══════════════════ CANDIDATE 3 ══════════════════ -->
+        <article id="c3" class="rounded-xl border border-slate-200 bg-white shadow-sm p-8 space-y-6">
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="font-serif text-2xl font-semibold">3 · Move mood→colour and tier→motion out of the views, next to Creature face</h2>
+            <div class="flex gap-2 shrink-0">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1">Strong</span>
+              <span class="rounded-full bg-slate-100 text-slate-600 text-xs px-3 py-1">in-process</span>
+            </div>
+          </div>
+
+          <p class="font-mono text-sm text-slate-600">
+            Sources/Tokengochi/Phosphor.swift:20–39 · CreatureView.swift:145–176 · MenuContentView.swift:13–36, 208–214, 267–271
+          </p>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">Before — pure mappings frozen inside views</p>
+              <pre class="mermaid">
+flowchart LR
+  V[Vitals] --> CF["Creature face<br/>(Kit, tested ✓)"]
+  V --> PH["Phosphor.body(mood, skin)<br/>inside app target"]
+  V --> SM["SpriteMotion(tier, time)<br/>private in CreatureView"]
+  V --> MV["effectiveTier / effectiveSkin /<br/>effortLabel in MenuContentView"]
+  CF --> UI[SwiftUI]
+  PH --> UI
+  SM --> UI
+  MV --> UI
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  classDef ok stroke:#059669,stroke-width:2px;
+  class PH,SM,MV leak
+  class CF ok
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">After — mass diagram: presentation module in Kit</p>
+              <div class="flex items-end justify-center gap-10 h-64 pt-2">
+                <div class="flex flex-col items-center gap-1">
+                  <div class="w-24 mass-iface border border-amber-500" style="height:88px"></div>
+                  <div class="w-24 bg-slate-200 border border-slate-400" style="height:104px"></div>
+                  <p class="text-[10px] uppercase tracking-wider text-slate-500 text-center">before: 4 modules,<br/>interface ≈ implementation</p>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <div class="w-24 mass-iface border border-amber-500" style="height:22px"></div>
+                  <div class="w-24 deep-box" style="height:170px"></div>
+                  <p class="text-[10px] uppercase tracking-wider text-slate-500 text-center">after: Creature presentation<br/>(face + palette + motion)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <dl class="space-y-2 text-sm">
+            <div><dt class="font-semibold inline">Problem.</dt> <dd class="inline">Mood→colour, tier→motion maths, and tier/skin clamping are deterministic functions of Vitals, but they live in SwiftUI files where no test reaches — while the identical kind of logic (Creature face geometry) is already in Kit and tested.</dd></div>
+            <div><dt class="font-semibold inline">Solution.</dt> <dd class="inline">Extend the Creature face idea into a Creature presentation module in Kit: palette roles per mood/skin, motion offsets per tier/time, effective-tier/skin clamping. Views fill pixels; Kit decides what they should be.</dd></div>
+          </dl>
+
+          <div>
+            <p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Wins</p>
+            <ul class="text-sm space-y-1 list-disc list-inside marker:text-emerald-500">
+              <li>"What does SICK look like" fully assertable</li>
+              <li>Motion curves testable at t=0</li>
+              <li>Views shrink to pure layout</li>
+              <li>Locality: appearance rules in one module</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- ══════════════════ CANDIDATE 4 ══════════════════ -->
+        <article id="c4" class="rounded-xl border border-slate-200 bg-white shadow-sm p-8 space-y-6">
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="font-serif text-2xl font-semibold">4 · Give Pet session the display projection; make UsageStore a thin timer host</h2>
+            <div class="flex gap-2 shrink-0">
+              <span class="rounded-full bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1">Worth exploring</span>
+              <span class="rounded-full bg-slate-100 text-slate-600 text-xs px-3 py-1">in-process</span>
+            </div>
+          </div>
+
+          <p class="font-mono text-sm text-slate-600">Sources/Tokengochi/UsageStore.swift:47–72 · Sources/TokengochiKit/PetSession.swift</p>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">Before — pass-through re-unpacks the Snapshot</p>
+              <pre class="mermaid">
+sequenceDiagram
+  participant U as UsageStore
+  participant S as Pet session
+  U->>S: refresh()
+  S-->>U: (Vitals, Snapshot)
+  Note over U: re-derives 7 @Published fields<br/>epoch → Date conversions<br/>reset/freshness text
+  U->>U: sessionResetText, freshnessText…
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">After — projection behind the tested interface</p>
+              <pre class="mermaid">
+sequenceDiagram
+  participant U as UsageStore (timer host)
+  participant S as Pet session (deep)
+  U->>S: refresh()
+  Note over S: Vitals + display projection<br/>(dates, reset text, freshness)<br/>— tested in Kit
+  S-->>U: DisplayState
+  U->>U: publish, done
+              </pre>
+            </div>
+          </div>
+
+          <dl class="space-y-2 text-sm">
+            <div><dt class="font-semibold inline">Problem.</dt> <dd class="inline">UsageStore fails the deletion test's inverse: it is a shallow pass-through whose body is mostly re-unpacking the Snapshot that Pet session just returned — epoch→Date conversion and reset/freshness text live in an untestable view-model.</dd></div>
+            <div><dt class="font-semibold inline">Solution.</dt> <dd class="inline">Pet session (or a small projection alongside it) returns display-ready state; UsageStore keeps only the timer and the @Published plumbing.</dd></div>
+          </dl>
+
+          <div>
+            <p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Wins</p>
+            <ul class="text-sm space-y-1 list-disc list-inside marker:text-emerald-500">
+              <li>Projection joins the tested interface</li>
+              <li>Delete the pass-through unpacking</li>
+              <li>Locality: one place decides display fields</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- ══════════════════ CANDIDATE 5 ══════════════════ -->
+        <article id="c5" class="rounded-xl border border-slate-200 bg-white shadow-sm p-8 space-y-6">
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="font-serif text-2xl font-semibold">5 · Make AppPaths injectable; surface the hidden migration</h2>
+            <div class="flex gap-2 shrink-0">
+              <span class="rounded-full bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1">Worth exploring</span>
+              <span class="rounded-full bg-slate-100 text-slate-600 text-xs px-3 py-1">local-substitutable</span>
+            </div>
+          </div>
+
+          <p class="font-mono text-sm text-slate-600">Sources/TokengochiKit/AppPaths.swift:28–35 · UsageSnapshot.swift · PetState.swift</p>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4 flex flex-col">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">Before — a path getter that moves files</p>
+              <div class="flex-1 flex flex-col items-center justify-center gap-2">
+                <div class="border border-slate-400 bg-white rounded px-4 py-2 font-mono text-xs">AppPaths.supportDirectory <span class="text-slate-400">// read</span></div>
+                <svg width="20" height="24"><line x1="10" y1="0" x2="10" y2="24" stroke="#dc2626" stroke-width="2"/></svg>
+                <div class="border-2 border-red-500 bg-red-50 rounded px-4 py-2 text-xs">side effect: <span class="font-mono">Tokengotchi → Tokengochi</span> directory migration</div>
+                <p class="text-[11px] text-red-700 mt-1">Untested; base directory not injectable, so load/save of Snapshot and Pet state hit real disk.</p>
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-stone-50 p-4 flex flex-col">
+              <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">After — explicit migration, injectable root</p>
+              <div class="flex-1 flex flex-col items-center justify-center gap-2">
+                <div class="deep-box rounded-lg text-white px-5 py-3 text-center">
+                  <p class="text-xs uppercase tracking-wider text-emerald-300">App paths (injectable root)</p>
+                  <p class="font-mono text-[11px] mt-1">migrateLegacyDirectoryIfNeeded()</p>
+                </div>
+                <svg width="120" height="20"><line x1="60" y1="0" x2="20" y2="20" stroke="#64748b" stroke-width="1.5" class="seam"/><line x1="60" y1="0" x2="100" y2="20" stroke="#64748b" stroke-width="1.5" class="seam"/></svg>
+                <div class="flex gap-3 text-[11px]">
+                  <span class="border border-slate-400 bg-white rounded px-3 py-1">real Application Support</span>
+                  <span class="border border-slate-400 bg-white rounded px-3 py-1">temp dir in tests</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <dl class="space-y-2 text-sm">
+            <div><dt class="font-semibold inline">Problem.</dt> <dd class="inline">The legacy-directory migration is real behaviour hidden as a side effect of reading a path; because the root isn't injectable, the migration, Snapshot load/save, and Pet state's forward-compat decoder are all untestable.</dd></div>
+            <div><dt class="font-semibold inline">Solution.</dt> <dd class="inline">Inject the base directory, name the migration explicitly, and point tests at a temp root — same seam pattern Snapshot store already proves out.</dd></div>
+          </dl>
+
+          <div>
+            <p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Wins</p>
+            <ul class="text-sm space-y-1 list-disc list-inside marker:text-emerald-500">
+              <li>Migration gets a regression test</li>
+              <li>Pet state decoder defaults testable</li>
+              <li>No surprise side effect on read</li>
+            </ul>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- ══════════════════ TOP RECOMMENDATION ══════════════════ -->
+      <section id="top-recommendation" class="rounded-xl deep-box text-white p-8 space-y-3">
+        <p class="text-xs uppercase tracking-wider text-emerald-300">Top recommendation</p>
+        <h2 class="font-serif text-2xl font-semibold"><a href="#c1" class="underline decoration-emerald-400 underline-offset-4">Collapse the vendor-JSON → Snapshot pipeline</a></h2>
+        <p class="text-sm text-slate-300 max-w-3xl">
+          It deepens the seam both producers depend on, deletes the duplicated compose dance in the Poller and Writer, shrinks Snapshot merge's 9-argument interface, and turns the entire ingestion path into ordinary Kit unit tests — and it makes candidate 2 smaller, because the Poller's only pure slice moves into Kit first.
+        </p>
+      </section>
+
+    </main>
+  </body>
+</html>

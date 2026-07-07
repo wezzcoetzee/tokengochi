@@ -3,6 +3,7 @@ import TokengochiKit
 
 struct MenuContentView: View {
     @ObservedObject var store: UsageStore
+    @ObservedObject var poller: PollerManager
     @StateObject private var loginItem = LoginItemManager()
     @State private var showingHelp = false
     @AppStorage("petSkin") private var skinRaw = PetSkin.classic.rawValue
@@ -47,6 +48,8 @@ struct MenuContentView: View {
 
             Divider()
 
+            backgroundUpdatesRow
+
             launchAtLoginRow
 
             HStack {
@@ -76,6 +79,31 @@ struct MenuContentView: View {
             .accessibilityLabel(showingHelp ? "Close help" : "Help")
             .accessibilityHint("Explains moods, vitals, and mechanics")
         }
+    }
+
+    private var backgroundUpdatesRow: some View {
+        VStack(alignment: .leading, spacing: Metric.xs) {
+            Toggle(isOn: Binding(
+                get: { poller.isEnabled },
+                set: { poller.setEnabled($0) }
+            )) {
+                Label("Background updates", systemImage: "arrow.triangle.2.circlepath")
+                    .font(.system(.caption, design: .monospaced))
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+
+            if let error = poller.lastError {
+                Text(error)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            } else {
+                Text("Polls your Claude usage every 2 min. Needs Claude Code or T3 Code signed in.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .onAppear { poller.refresh() }
     }
 
     private var launchAtLoginRow: some View {

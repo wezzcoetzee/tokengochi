@@ -16,11 +16,12 @@ swift build -c release
 
 echo "▸ Assembling $APP_NAME.app…"
 rm -rf "$APP"
-mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources" "$CONTENTS/Helpers"
+mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources" "$CONTENTS/Helpers" "$CONTENTS/Library/LaunchAgents"
 
 cp "$BUILD/$APP_NAME"        "$CONTENTS/MacOS/$APP_NAME"
 cp "$BUILD/TokengochiWriter" "$CONTENTS/Helpers/TokengochiWriter"
 cp "$BUILD/TokengochiPoller" "$CONTENTS/Helpers/TokengochiPoller"
+cp "$ROOT/com.tokengochi.poller.agent.plist" "$CONTENTS/Library/LaunchAgents/com.tokengochi.poller.plist"
 
 if [[ ! -f "$ROOT/AppIcon.icns" && -f "$ROOT/AppIcon.png" ]]; then
   echo "▸ Generating AppIcon.icns from AppIcon.png…"

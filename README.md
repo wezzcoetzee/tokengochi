@@ -94,7 +94,7 @@ If you installed the packaged app, the writer lives inside the bundle — point 
 
 If you don't live in the Claude Code TUI — you use **T3 Code**, the Agent SDK, or any other wrapper around your subscription — the statusline writer never fires. Use the poller instead. It needs Claude Code installed and signed in *once* (so the OAuth token exists in your Keychain); after that it refreshes the snapshot on its own.
 
-If you installed the packaged app, substitute `/Applications/Tokengochi.app/Contents/Helpers/TokengochiPoller` for the `.build` path in the commands below (including the LaunchAgent `sed`).
+**If you installed the packaged app, this is automatic.** Tokengochi ships the poller as a bundled LaunchAgent and registers it on first launch (`SMAppService`), so it starts polling every 2 minutes and keeps running across reboots — no setup. You can toggle it under **Background updates** in the menu. The steps below are only for running the poller from a source checkout or for manual control.
 
 One-shot:
 
@@ -120,7 +120,7 @@ launchctl kickstart -k gui/$(id -u)/com.tokengochi.poller   # force an immediate
 
 It polls every 120s and logs to `~/Library/Logs/tokengochi-poller.log`. To stop: `launchctl bootout gui/$(id -u)/com.tokengochi.poller`. (The older `launchctl load`/`unload` verbs fail with "Input/output error" on recent macOS — use `bootstrap`/`bootout`.)
 
-**First run** the binary reads the `Claude Code-credentials` Keychain item, so macOS may show a one-time "wants to use confidential information" prompt — click **Always Allow**. If the token expires the poll returns HTTP 401; opening Claude Code or T3 Code refreshes it.
+**First run** the binary reads the `Claude Code-credentials` Keychain item, so macOS shows a one-time "wants to use confidential information" prompt — click **Always Allow**. This prompt appears whether the poller runs from the bundled LaunchAgent or by hand. If the token expires the poll returns HTTP 401; opening Claude Code or T3 Code refreshes it.
 
 ## Known constraint
 
