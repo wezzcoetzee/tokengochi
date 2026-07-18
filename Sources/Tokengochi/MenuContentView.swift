@@ -5,6 +5,7 @@ struct MenuContentView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var poller: PollerManager
     var startShowingHelp = false
+    var helpMaxHeight: CGFloat = 360
     @StateObject private var loginItem = LoginItemManager()
     @State private var showingHelp = false
     @AppStorage("petSkin") private var skinRaw = PetSkin.classic.rawValue
@@ -42,7 +43,8 @@ struct MenuContentView: View {
             header
 
             if showingHelp {
-                HelpView(vitals: store.vitals, activeAnimationTier: effectiveAnimationTier)
+                HelpView(vitals: store.vitals, activeAnimationTier: effectiveAnimationTier,
+                         maxHeight: helpMaxHeight)
             } else {
                 statsBody
             }

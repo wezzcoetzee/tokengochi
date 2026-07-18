@@ -4,6 +4,7 @@ import TokengochiKit
 struct HelpView: View {
     let vitals: Vitals
     var activeAnimationTier: AnimationTier? = nil
+    var maxHeight: CGFloat = 360
 
     var body: some View {
         ScrollView {
@@ -30,7 +31,7 @@ struct HelpView: View {
             }
             .padding(.vertical, Metric.xs)
         }
-        .frame(maxHeight: 360)
+        .frame(maxHeight: maxHeight)
     }
 
     private var intro: some View {

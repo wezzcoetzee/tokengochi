@@ -18,8 +18,12 @@ enum ScreenshotMode {
     static func makeWindow() -> NSWindow {
         let store = UsageStore(store: demoStore(for: screen))
         let content = MenuContentView(store: store, poller: PollerManager(),
-                                      startShowingHelp: screen == "help")
-        let window = NSWindow(contentViewController: NSHostingController(rootView: content))
+                                      startShowingHelp: screen == "help",
+                                      helpMaxHeight: screen == "help" ? 700 : 360)
+        let hosting = NSHostingController(rootView: content.frame(width: 300))
+        hosting.sizingOptions = [.preferredContentSize]
+        hosting.safeAreaRegions = []
+        let window = NSWindow(contentViewController: hosting)
         window.styleMask = [.titled, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
@@ -27,7 +31,11 @@ enum ScreenshotMode {
         for button: NSWindow.ButtonType in [.closeButton, .miniaturizeButton, .zoomButton] {
             window.standardWindowButton(button)?.isHidden = true
         }
-        window.center()
+        window.setContentSize(NSSize(width: 300, height: hosting.view.fittingSize.height))
+        if let visible = NSScreen.main?.visibleFrame {
+            window.setFrameOrigin(NSPoint(x: visible.midX - window.frame.width / 2,
+                                          y: visible.midY - window.frame.height / 2))
+        }
         window.makeKeyAndOrderFront(nil)
         return window
     }
