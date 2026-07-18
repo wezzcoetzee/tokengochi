@@ -1,0 +1,39 @@
+{
+  "app": "Tokengochi",
+  "platform": "mac",
+  "bundleId": "com.tokengochi.app",
+  "bg1": "#1B4D1C",
+  "bg2": "#080F08",
+  "text": "#FFFFFF",
+  "window": { "appName": "Tokengochi", "frame": "mac", "compositeSize": "2880x1800" },
+  "screens": [
+    {
+      "id": "healthy",
+      "launchArgs": ["-uiScreenshots", "-uiScreen", "healthy"],
+      "headline": "Your token budget, alive",
+      "subheadline": "A tiny pet in your menu bar that thrives on Claude Code usage",
+      "settle": 4
+    },
+    {
+      "id": "claude",
+      "launchArgs": ["-uiScreenshots", "-uiScreen", "claude", "-petSkin", "claude"],
+      "headline": "Earn new pets",
+      "subheadline": "Heavy weeks unlock the Claude skin and richer animations",
+      "settle": 4
+    },
+    {
+      "id": "neglected",
+      "launchArgs": ["-uiScreenshots", "-uiScreen", "neglected"],
+      "headline": "Waste a window, clean the mess",
+      "subheadline": "Idle sessions leave messes that drain your pet's health",
+      "settle": 4
+    },
+    {
+      "id": "help",
+      "launchArgs": ["-uiScreenshots", "-uiScreen", "help"],
+      "headline": "Every mood explained",
+      "subheadline": "Built-in reference for vitals, moods, and unlock thresholds",
+      "settle": 4
+    }
+  ]
+}

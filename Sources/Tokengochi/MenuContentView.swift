@@ -4,6 +4,7 @@ import TokengochiKit
 struct MenuContentView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var poller: PollerManager
+    var startShowingHelp = false
     @StateObject private var loginItem = LoginItemManager()
     @State private var showingHelp = false
     @AppStorage("petSkin") private var skinRaw = PetSkin.classic.rawValue
@@ -61,7 +62,10 @@ struct MenuContentView: View {
         .padding(Metric.content)
         .frame(minWidth: 264, idealWidth: 264, maxWidth: 320)
         .fixedSize(horizontal: false, vertical: true)
-        .onAppear { store.setActive(true) }
+        .onAppear {
+            showingHelp = startShowingHelp
+            store.setActive(true)
+        }
         .onDisappear { store.setActive(false) }
     }
 
