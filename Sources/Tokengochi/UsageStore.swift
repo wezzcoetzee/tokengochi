@@ -44,6 +44,11 @@ final class UsageStore: ObservableObject {
         }
     }
 
+    func revive() {
+        session.revive()
+        refresh()
+    }
+
     func refresh() {
         let (vitals, snapshot) = session.refresh()
         self.vitals = vitals

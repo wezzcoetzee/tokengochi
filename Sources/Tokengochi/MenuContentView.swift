@@ -127,7 +127,41 @@ struct MenuContentView: View {
         .onAppear { loginItem.refresh() }
     }
 
+    @ViewBuilder
     private var statsBody: some View {
+        if store.vitals.isDead {
+            deadBody
+        } else {
+            aliveBody
+        }
+    }
+
+    private var deadBody: some View {
+        VStack(alignment: .leading, spacing: Metric.lg) {
+            CreatureView(vitals: store.vitals, skin: .classic, animationTier: .dormant)
+
+            VStack(alignment: .leading, spacing: Metric.sm) {
+                Text("Your Tokengochi died.")
+                    .font(.system(.callout, design: .monospaced)).bold()
+                Text("Too many uncleaned messes drained its health to zero. Reviving starts it over and resets every unlocked animation and skin — you'll re-earn them through new Claude usage.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Button {
+                store.revive()
+            } label: {
+                Label("Revive", systemImage: "arrow.counterclockwise")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.red)
+            .accessibilityHint("Resets the pet and all unlocked animations and skins")
+        }
+    }
+
+    private var aliveBody: some View {
         VStack(alignment: .leading, spacing: Metric.lg) {
             CreatureView(vitals: store.vitals, skin: effectiveSkin, animationTier: effectiveAnimationTier)
 

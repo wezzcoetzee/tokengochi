@@ -108,12 +108,62 @@ private func now(atFraction f: Double) -> Double {
         #expect(!state.windowCleaned)
     }
 
-    @Test func healthFloorsAtZero() {
+    @Test func healthReachingZeroKillsThePet() {
         var state = PetState(poops: 10)
         let vitals = PetEngine.update(snapshot: snapshot(session: 50, weekly: 50), state: &state)
 
         #expect(vitals.health == 0)
-        #expect(vitals.mood == .sick)
+        #expect(vitals.isDead)
+        #expect(state.isDead)
+    }
+
+    @Test func deathWipesUnlocksAndBaselinesUsage() {
+        var state = PetState(poops: 5, peakWeekly: 80)
+        let vitals = PetEngine.update(snapshot: snapshot(session: 10, weekly: 60), state: &state)
+
+        #expect(vitals.isDead)
+        #expect(state.peakWeekly == 0)
+        #expect(state.unlockFloor == 60)
+        #expect(vitals.animationTier == .dormant)
+    }
+
+    @Test func deadPetIsFrozenUntilRevived() {
+        var state = PetState(poops: 5, isDead: true)
+        let vitals = PetEngine.update(snapshot: snapshot(session: 96, weekly: 96, sessionResetsAt: 5000), state: &state)
+
+        #expect(vitals.isDead)
+        #expect(state.poops == 5)
+        #expect(state.peakWeekly == 0)
+    }
+
+    @Test func reviveRestoresHealthButKeepsUnlockPenalty() {
+        var state = PetState(poops: 5, peakWeekly: 0, isDead: true, unlockFloor: 60)
+        PetEngine.revive(state: &state)
+
+        #expect(!state.isDead)
+        #expect(state.poops == 0)
+        #expect(state.unlockFloor == 60)
+
+        let vitals = PetEngine.update(snapshot: snapshot(session: 50, weekly: 60), state: &state)
+        #expect(!vitals.isDead)
+        #expect(vitals.health == 100)
+        #expect(vitals.peakWeekly == 0)
+        #expect(vitals.animationTier == .dormant)
+    }
+
+    @Test func unlocksReEarnFromUsageAboveFloor() {
+        var state = PetState(peakWeekly: 0, unlockFloor: 60)
+        _ = PetEngine.update(snapshot: snapshot(session: 50, weekly: 85), state: &state)
+
+        #expect(state.peakWeekly == 25)
+    }
+
+    @Test func newWeekClearsUnlockPenalty() {
+        var state = PetState(peakWeekly: 0, unlockFloor: 60)
+        let vitals = PetEngine.update(snapshot: snapshot(session: 50, weekly: 10), state: &state)
+
+        #expect(state.unlockFloor == 0)
+        #expect(vitals.peakWeekly == 10)
     }
 
     @Test func moodSickWinsOverMaxedAfterWindowClean() {

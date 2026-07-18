@@ -13,7 +13,9 @@ struct TokengochiApp: App {
                 .task { poller.enableIfNeeded() }
         } label: {
             let vitals = store.vitals
-            if vitals.hasData {
+            if vitals.isDead {
+                Label("RIP", systemImage: "xmark.circle.fill")
+            } else if vitals.hasData {
                 Label("\(Int(vitals.session))%", systemImage: vitals.sessionMood.symbolName)
             } else {
                 Label("—", systemImage: Mood.noData.symbolName)

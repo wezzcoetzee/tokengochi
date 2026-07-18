@@ -39,17 +39,29 @@ struct CreatureView: View {
         .frame(maxWidth: .infinity)
         .frame(height: Metric.screenHeight)
         .clipShape(RoundedRectangle(cornerRadius: Metric.screenRadius))
+        .grayscale(vitals.isDead ? 0.9 : 0)
+        .brightness(vitals.isDead ? -0.05 : 0)
         .overlay(alignment: .bottomLeading) {
-            if vitals.poops > 0 {
+            if vitals.poops > 0 && !vitals.isDead {
                 Text(String(repeating: "💩", count: min(vitals.poops, 4)))
                     .font(.system(size: 14))
                     .padding(.leading, Metric.lg)
                     .padding(.bottom, Metric.messInset)
             }
         }
+        .overlay { if vitals.isDead { wastedOverlay } }
         .overlay(RoundedRectangle(cornerRadius: Metric.screenRadius).strokeBorder(lcdBackground, lineWidth: Metric.screenBezel))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(vitals.screenAccessibilityLabel)
+    }
+
+    private var wastedOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+            WastedBanner()
+        }
+        .clipShape(RoundedRectangle(cornerRadius: Metric.screenRadius))
+        .allowsHitTesting(false)
     }
 
     @ViewBuilder
@@ -96,6 +108,12 @@ struct CreatureView: View {
                     fill(c, r, blobColor)
                 }
             }
+
+            if vitals.isDead {
+                drawDeadFace(in: context, cell: cell, ox: ox, oy: oy)
+                return
+            }
+
             for eye in CreatureFace.eyeCells(skin: skin, mood: vitals.mood, blink: blink) {
                 fill(eye.col, eye.row, lcdBackground)
             }
@@ -103,6 +121,30 @@ struct CreatureView: View {
                 fill(mouth.col, mouth.row, lcdBackground)
             }
         }
+    }
+
+    private func drawDeadFace(in context: GraphicsContext, cell: Double, ox: Double, oy: Double) {
+        let eyes = CreatureFace.eyeCells(skin: skin, mood: .thriving, blink: false)
+        let clusters = [eyes.filter { $0.col < 8 }, eyes.filter { $0.col >= 8 }]
+        for cluster in clusters where !cluster.isEmpty {
+            let cols = cluster.map(\.col), rows = cluster.map(\.row)
+            let x0 = ox + Double(cols.min()!) * cell
+            let x1 = ox + Double(cols.max()! + 1) * cell
+            let y0 = oy + Double(rows.min()!) * cell
+            let y1 = oy + Double(rows.max()! + 1) * cell
+            var cross = Path()
+            cross.move(to: CGPoint(x: x0, y: y0)); cross.addLine(to: CGPoint(x: x1, y: y1))
+            cross.move(to: CGPoint(x: x1, y: y0)); cross.addLine(to: CGPoint(x: x0, y: y1))
+            context.stroke(cross, with: .color(lcdBackground),
+                           style: StrokeStyle(lineWidth: cell * 0.7, lineCap: .round))
+        }
+
+        var mouth = Path()
+        let mouthY = oy + 9 * cell + cell / 2
+        mouth.move(to: CGPoint(x: ox + 6 * cell, y: mouthY))
+        mouth.addLine(to: CGPoint(x: ox + 10 * cell, y: mouthY))
+        context.stroke(mouth, with: .color(lcdBackground),
+                       style: StrokeStyle(lineWidth: cell * 0.6, lineCap: .round))
     }
 
     private func sparkles(phase: Double) -> some View {
@@ -139,6 +181,32 @@ struct CreatureView: View {
     private func meter(_ label: String, _ value: Double) -> String {
         let filled = max(0, min(10, Int((value / 10).rounded())))
         return label + " " + String(repeating: "█", count: filled) + String(repeating: "░", count: 10 - filled)
+    }
+}
+
+private struct WastedBanner: View {
+    private static let wastedRed = Color(red: 0.85, green: 0.06, blue: 0.06)
+    private static let outlineOffsets: [CGSize] = [
+        CGSize(width: -1.5, height: 0), CGSize(width: 1.5, height: 0),
+        CGSize(width: 0, height: -1.5), CGSize(width: 0, height: 1.5),
+        CGSize(width: -1.5, height: -1.5), CGSize(width: 1.5, height: -1.5),
+        CGSize(width: -1.5, height: 1.5), CGSize(width: 1.5, height: 1.5)
+    ]
+
+    private var text: Text {
+        Text("Wasted")
+            .font(.system(size: 30, weight: .black, design: .rounded))
+            .italic()
+    }
+
+    var body: some View {
+        ZStack {
+            ForEach(Array(Self.outlineOffsets.enumerated()), id: \.offset) { _, offset in
+                text.foregroundStyle(.black).offset(offset)
+            }
+            text.foregroundStyle(Self.wastedRed)
+        }
+        .shadow(color: .black.opacity(0.6), radius: 3, y: 2)
     }
 }
 

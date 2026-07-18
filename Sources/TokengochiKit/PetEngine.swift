@@ -88,13 +88,21 @@ public struct Vitals {
     public let hasData: Bool
     public let animationTier: AnimationTier
     public let peakWeekly: Double
+    public let isDead: Bool
 
     public static func noData(poops: Int, health: Int, peakWeekly: Double) -> Vitals {
         Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
                health: health, poops: poops,
                mood: .noData, sessionMood: .noData, weight: 0, hasData: false,
                animationTier: AnimationTier.unlocked(forPeakWeekly: peakWeekly),
-               peakWeekly: peakWeekly)
+               peakWeekly: peakWeekly, isDead: false)
+    }
+
+    public static func dead(poops: Int) -> Vitals {
+        Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
+               health: 0, poops: poops,
+               mood: .sick, sessionMood: .sick, weight: 0, hasData: true,
+               animationTier: .dormant, peakWeekly: 0, isDead: true)
     }
 
     public var nextAnimationUnlock: (tier: AnimationTier, threshold: Double)? {
@@ -103,6 +111,9 @@ public struct Vitals {
     }
 
     public var screenAccessibilityLabel: String {
+        guard !isDead else {
+            return "Tokengochi died from neglect. Revive it to start over."
+        }
         guard hasData else {
             return "Tokengochi: no data yet. Start a Claude Code session to wake it up."
         }
@@ -140,6 +151,8 @@ public enum PetEngine {
     public static let okayHappinessThreshold = 35.0
 
     public static func update(snapshot: UsageSnapshot?, state: inout PetState) -> Vitals {
+        if state.isDead { return .dead(poops: state.poops) }
+
         guard let snapshot, let rawSession = snapshot.sessionPct else {
             return Vitals.noData(poops: state.poops,
                                  health: health(forPoops: state.poops),
@@ -154,7 +167,8 @@ public enum PetEngine {
         rollWindowIfNeeded(snapshot.sessionResetsAt, state: &state)
         if state.windowStartSession == nil { state.windowStartSession = session }
         state.windowPeakSession = max(state.windowPeakSession, session)
-        state.peakWeekly = max(state.peakWeekly, weekly)
+        if weekly < state.unlockFloor { state.unlockFloor = 0 }
+        state.peakWeekly = max(state.peakWeekly, weekly - state.unlockFloor)
 
         if session >= cleanThreshold && !state.windowCleaned && state.poops > 0 {
             state.poops -= 1
@@ -163,6 +177,13 @@ public enum PetEngine {
 
         let hunger = 100 - session
         let currentHealth = health(forPoops: state.poops)
+
+        if currentHealth == 0 {
+            state.isDead = true
+            state.unlockFloor = weekly
+            state.peakWeekly = 0
+            return .dead(poops: state.poops)
+        }
 
         let elapsed = windowElapsedFraction(now: snapshot.updatedAt, end: snapshot.sessionResetsAt)
         let overfed = isOverfed(session: session, elapsed: elapsed)
@@ -199,7 +220,15 @@ public enum PetEngine {
                       poops: state.poops, mood: mood, sessionMood: sessionMood,
                       weight: weight, hasData: true,
                       animationTier: AnimationTier.unlocked(forPeakWeekly: state.peakWeekly),
-                      peakWeekly: state.peakWeekly)
+                      peakWeekly: state.peakWeekly, isDead: false)
+    }
+
+    public static func revive(state: inout PetState) {
+        state.isDead = false
+        state.poops = 0
+        state.windowStartSession = nil
+        state.windowPeakSession = 0
+        state.windowCleaned = false
     }
 
     private static func rollWindowIfNeeded(_ resetsAt: Double?, state: inout PetState) {

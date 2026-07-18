@@ -35,4 +35,9 @@ public final class PetSession {
         if state != previous { store.savePetState(state) }
         return (vitals, snapshot)
     }
+
+    public func revive() {
+        PetEngine.revive(state: &state)
+        store.savePetState(state)
+    }
 }

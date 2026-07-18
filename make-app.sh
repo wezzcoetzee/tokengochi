@@ -8,7 +8,13 @@ APP_NAME="Tokengochi"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 BUILD="$ROOT/.build/release"
 DIST="$ROOT/dist"
-APP="$DIST/$APP_NAME.app"
+
+# Assemble/sign outside iCloud Drive: the iCloud file provider attaches
+# com.apple.fileprovider.fpfs#P / com.apple.FinderInfo xattrs that cannot be
+# stripped, and codesign rejects them ("resource fork … detritus not allowed").
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+APP="$WORK/$APP_NAME.app"
 CONTENTS="$APP/Contents"
 
 echo "▸ Building release binaries…"
@@ -66,10 +72,13 @@ cat > "$CONTENTS/Info.plist" <<PLIST
 PLIST
 
 echo "▸ Ad-hoc signing…"
-xattr -cr "$APP"
 codesign --force --sign - "$CONTENTS/Helpers/TokengochiWriter"
 codesign --force --sign - "$CONTENTS/Helpers/TokengochiPoller"
 codesign --force --sign - "$APP"
+
+mkdir -p "$DIST"
+rm -rf "$DIST/$APP_NAME.app"
+ditto "$APP" "$DIST/$APP_NAME.app"
 
 echo "▸ Zipping…"
 ZIP="$DIST/$APP_NAME-$VERSION.zip"

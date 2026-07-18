@@ -7,17 +7,22 @@ public struct PetState: Codable, Equatable {
     public var windowPeakSession: Double
     public var windowCleaned: Bool
     public var peakWeekly: Double
+    public var isDead: Bool
+    public var unlockFloor: Double
 
     public init(poops: Int = 0, lastSessionResetsAt: Double? = nil,
                 windowStartSession: Double? = nil,
                 windowPeakSession: Double = 0, windowCleaned: Bool = false,
-                peakWeekly: Double = 0) {
+                peakWeekly: Double = 0, isDead: Bool = false,
+                unlockFloor: Double = 0) {
         self.poops = poops
         self.lastSessionResetsAt = lastSessionResetsAt
         self.windowStartSession = windowStartSession
         self.windowPeakSession = windowPeakSession
         self.windowCleaned = windowCleaned
         self.peakWeekly = peakWeekly
+        self.isDead = isDead
+        self.unlockFloor = unlockFloor
     }
 
     public init(from decoder: Decoder) throws {
@@ -28,6 +33,8 @@ public struct PetState: Codable, Equatable {
         windowPeakSession = try container.decodeIfPresent(Double.self, forKey: .windowPeakSession) ?? 0
         windowCleaned = try container.decodeIfPresent(Bool.self, forKey: .windowCleaned) ?? false
         peakWeekly = try container.decodeIfPresent(Double.self, forKey: .peakWeekly) ?? 0
+        isDead = try container.decodeIfPresent(Bool.self, forKey: .isDead) ?? false
+        unlockFloor = try container.decodeIfPresent(Double.self, forKey: .unlockFloor) ?? 0
     }
 
     public static func load() -> PetState {
