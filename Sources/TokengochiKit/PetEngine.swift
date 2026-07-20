@@ -89,20 +89,25 @@ public struct Vitals {
     public let animationTier: AnimationTier
     public let peakWeekly: Double
     public let isDead: Bool
+    public let pikaUnlocked: Bool
+    public let reekUnlocked: Bool
 
-    public static func noData(poops: Int, health: Int, peakWeekly: Double) -> Vitals {
+    public static func noData(poops: Int, health: Int, peakWeekly: Double,
+                              pikaUnlocked: Bool, reekUnlocked: Bool) -> Vitals {
         Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
                health: health, poops: poops,
                mood: .noData, sessionMood: .noData, weight: 0, hasData: false,
                animationTier: AnimationTier.unlocked(forPeakWeekly: peakWeekly),
-               peakWeekly: peakWeekly, isDead: false)
+               peakWeekly: peakWeekly, isDead: false, pikaUnlocked: pikaUnlocked,
+               reekUnlocked: reekUnlocked)
     }
 
-    public static func dead(poops: Int) -> Vitals {
+    public static func dead(poops: Int, reekUnlocked: Bool) -> Vitals {
         Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
                health: 0, poops: poops,
                mood: .sick, sessionMood: .sick, weight: 0, hasData: true,
-               animationTier: .dormant, peakWeekly: 0, isDead: true)
+               animationTier: .dormant, peakWeekly: 0, isDead: true, pikaUnlocked: false,
+               reekUnlocked: reekUnlocked)
     }
 
     public var nextAnimationUnlock: (tier: AnimationTier, threshold: Double)? {
@@ -149,14 +154,18 @@ public enum PetEngine {
     public static let sickHealthThreshold = 40.0
     public static let thrivingHappinessThreshold = 70.0
     public static let okayHappinessThreshold = 35.0
+    public static let pikaSessionThreshold = 80.0
+    public static let pikaWindowFraction = 60.0 / 300.0
 
     public static func update(snapshot: UsageSnapshot?, state: inout PetState) -> Vitals {
-        if state.isDead { return .dead(poops: state.poops) }
+        if state.isDead { return .dead(poops: state.poops, reekUnlocked: state.hasDiedOnce) }
 
         guard let snapshot, let rawSession = snapshot.sessionPct else {
             return Vitals.noData(poops: state.poops,
                                  health: health(forPoops: state.poops),
-                                 peakWeekly: state.peakWeekly)
+                                 peakWeekly: state.peakWeekly,
+                                 pikaUnlocked: state.pikaUnlocked,
+                                 reekUnlocked: state.hasDiedOnce)
         }
 
         let clamp = { (value: Double) in min(100, max(0, value)) }
@@ -180,12 +189,17 @@ public enum PetEngine {
 
         if currentHealth == 0 {
             state.isDead = true
+            state.hasDiedOnce = true
             state.unlockFloor = weekly
             state.peakWeekly = 0
-            return .dead(poops: state.poops)
+            state.pikaUnlocked = false
+            return .dead(poops: state.poops, reekUnlocked: state.hasDiedOnce)
         }
 
         let elapsed = windowElapsedFraction(now: snapshot.updatedAt, end: snapshot.sessionResetsAt)
+        if let elapsed, session > pikaSessionThreshold, elapsed < pikaWindowFraction {
+            state.pikaUnlocked = true
+        }
         let overfed = isOverfed(session: session, elapsed: elapsed)
         let overfedSeverity = overfedSeverity(elapsed: elapsed)
         let behindPace = isBehindPace(session: session, elapsed: elapsed)
@@ -220,7 +234,9 @@ public enum PetEngine {
                       poops: state.poops, mood: mood, sessionMood: sessionMood,
                       weight: weight, hasData: true,
                       animationTier: AnimationTier.unlocked(forPeakWeekly: state.peakWeekly),
-                      peakWeekly: state.peakWeekly, isDead: false)
+                      peakWeekly: state.peakWeekly, isDead: false,
+                      pikaUnlocked: state.pikaUnlocked,
+                      reekUnlocked: state.hasDiedOnce)
     }
 
     public static func revive(state: inout PetState) {

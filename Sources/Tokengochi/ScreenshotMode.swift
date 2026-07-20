@@ -19,10 +19,9 @@ enum ScreenshotMode {
         let store = UsageStore(store: demoStore(for: screen))
         let content = MenuContentView(store: store, poller: PollerManager(),
                                       startShowingHelp: screen == "help",
-                                      helpMaxHeight: screen == "help" ? 700 : 360)
+                                      startShowingSettings: screen == "settings")
         let hosting = NSHostingController(rootView: content.frame(width: 300))
         hosting.sizingOptions = [.preferredContentSize]
-        hosting.safeAreaRegions = []
         let window = NSWindow(contentViewController: hosting)
         window.styleMask = [.titled, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
@@ -56,6 +55,11 @@ enum ScreenshotMode {
                 snapshot: snapshot(session: 78, weekly: 97, context: 55,
                                    model: "Opus 4.8", effort: "xhigh", fastMode: true),
                 state: PetState(windowCleaned: true, peakWeekly: 97))
+        case "pika":
+            return DemoSnapshotStore(
+                snapshot: snapshot(session: 88, weekly: 72, context: 48,
+                                   model: "Opus 4.8", effort: "high", fastMode: true),
+                state: PetState(windowCleaned: true, peakWeekly: 72, pikaUnlocked: true))
         case "neglected":
             return DemoSnapshotStore(
                 snapshot: snapshot(session: 12, weekly: 34, context: 18,

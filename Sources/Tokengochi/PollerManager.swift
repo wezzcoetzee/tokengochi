@@ -17,7 +17,9 @@ final class PollerManager: ObservableObject {
     }
 
     func enableIfNeeded() {
-        guard service.status != .enabled else { return }
+        if service.status == .enabled {
+            try? service.unregister()
+        }
         setEnabled(true)
     }
 

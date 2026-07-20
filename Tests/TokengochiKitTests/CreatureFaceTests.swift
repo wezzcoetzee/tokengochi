@@ -38,4 +38,67 @@ import Testing
         #expect(open.count == 8)
         #expect(blink.count == 4)
     }
+
+    @Test func pikaBodyIsFifteenRowsAndSixteenColumnsWide() {
+        let rows = CreatureFace.bodyRows(skin: .pika)
+        #expect(rows.count == 15)
+        #expect(rows.allSatisfy { $0.count == 16 })
+    }
+
+    private func expectCellsAreBody(_ cells: [FaceCell], rows: [String]) {
+        for cell in cells {
+            let row = Array(rows[cell.row])
+            #expect(row[cell.col] == "#")
+        }
+    }
+
+    @Test func pikaEyeAndMouthCellsLandInsideBody() {
+        let rows = CreatureFace.bodyRows(skin: .pika)
+        expectCellsAreBody(CreatureFace.eyeCells(skin: .pika, mood: .okay, blink: false), rows: rows)
+        expectCellsAreBody(CreatureFace.eyeCells(skin: .pika, mood: .okay, blink: true), rows: rows)
+        for mood in [Mood.thriving, .okay, .lonely, .starving, .sick, .overfed, .noData] {
+            expectCellsAreBody(CreatureFace.mouthCells(skin: .pika, mood: mood), rows: rows)
+        }
+    }
+
+    @Test func pikaBlinkingEyesDifferFromOpenEyes() {
+        let open = CreatureFace.eyeCells(skin: .pika, mood: .okay, blink: false)
+        let blink = CreatureFace.eyeCells(skin: .pika, mood: .okay, blink: true)
+        #expect(open != blink)
+        #expect(open.count == 8)
+        #expect(blink.count == 4)
+    }
+
+    @Test func pikaOverfedClosesEyesLikeBlink() {
+        let overfed = CreatureFace.eyeCells(skin: .pika, mood: .overfed, blink: false)
+        let blinking = CreatureFace.eyeCells(skin: .pika, mood: .okay, blink: true)
+        #expect(overfed == blinking)
+    }
+
+    @Test func pikaSickMouthDiffersFromThrivingMouth() {
+        let sick = CreatureFace.mouthCells(skin: .pika, mood: .sick)
+        let thriving = CreatureFace.mouthCells(skin: .pika, mood: .thriving)
+        #expect(sick != thriving)
+    }
+
+    @Test func reekBodyIsThirteenRowsAndSixteenColumnsWide() {
+        let rows = CreatureFace.bodyRows(skin: .reek)
+        #expect(rows.count == 13)
+        #expect(rows.allSatisfy { $0.count == 16 })
+    }
+
+    @Test func reekEyeAndMouthCellsLandInsideBody() {
+        let rows = CreatureFace.bodyRows(skin: .reek)
+        expectCellsAreBody(CreatureFace.eyeCells(skin: .reek, mood: .okay, blink: false), rows: rows)
+        expectCellsAreBody(CreatureFace.eyeCells(skin: .reek, mood: .okay, blink: true), rows: rows)
+        for mood in [Mood.thriving, .okay, .lonely, .starving, .sick, .overfed, .noData] {
+            expectCellsAreBody(CreatureFace.mouthCells(skin: .reek, mood: mood), rows: rows)
+        }
+    }
+
+    @Test func reekOverfedClosesEyesLikeBlink() {
+        let overfed = CreatureFace.eyeCells(skin: .reek, mood: .overfed, blink: false)
+        let blinking = CreatureFace.eyeCells(skin: .reek, mood: .okay, blink: true)
+        #expect(overfed == blinking)
+    }
 }

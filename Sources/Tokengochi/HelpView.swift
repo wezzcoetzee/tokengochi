@@ -4,12 +4,23 @@ import TokengochiKit
 struct HelpView: View {
     let vitals: Vitals
     var activeAnimationTier: AnimationTier? = nil
-    var maxHeight: CGFloat = 360
+    var showPetUnlocks = false
+    var activeSkin: PetSkin = .classic
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Metric.lg) {
                 intro
+
+                if showPetUnlocks {
+                    legendSection("Pets") {
+                        ForEach(PetSkin.helpOrder, id: \.self) { skinRow($0) }
+                    }
+
+                    legendSection("Animations") {
+                        ForEach(AnimationTier.allCases, id: \.self) { tierRow($0) }
+                    }
+                }
 
                 legendSection("Moods") {
                     ForEach(Mood.helpOrder, id: \.self) { mood in
@@ -24,14 +35,10 @@ struct HelpView: View {
                 legendSection("Messes") {
                     ForEach(HelpContent.mechanics) { topicRow($0, active: false) }
                 }
-
-                legendSection("Animations") {
-                    ForEach(AnimationTier.allCases, id: \.self) { tierRow($0) }
-                }
             }
             .padding(.vertical, Metric.xs)
         }
-        .frame(maxHeight: maxHeight)
+        .frame(maxHeight: 360)
     }
 
     private var intro: some View {
@@ -59,6 +66,14 @@ struct HelpView: View {
                    condition: mood.helpCondition,
                    detail: mood.helpDescription,
                    active: active)
+    }
+
+    private func skinRow(_ skin: PetSkin) -> some View {
+        row(symbol: "pawprint.fill",
+            title: skin.displayName,
+            condition: skin.helpCondition,
+            detail: skin.helpDescription,
+            active: activeSkin == skin)
     }
 
     private func tierRow(_ tier: AnimationTier) -> some View {

@@ -5,9 +5,14 @@ struct MenuContentView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var poller: PollerManager
     var startShowingHelp = false
-    var helpMaxHeight: CGFloat = 360
+    var startShowingSettings = false
     @StateObject private var loginItem = LoginItemManager()
+    @StateObject private var statusline = StatuslineManager()
     @State private var showingHelp = false
+    @State private var showingSettings = false
+    @State private var titleTapCount = 0
+    @State private var lastTitleTapAt = Date.distantPast
+    @State private var petHintsRevealed = false
     @AppStorage("petSkin") private var skinRaw = PetSkin.classic.rawValue
     @AppStorage("animationTier") private var animationTierRaw = AnimationTier.sparkling.rawValue
 
@@ -34,8 +39,32 @@ struct MenuContentView: View {
         PetSkin.claude.isUnlocked(forPeakWeekly: store.vitals.peakWeekly)
     }
 
+    private var pikaUnlocked: Bool { store.vitals.pikaUnlocked }
+
+    private var reekUnlocked: Bool { store.vitals.reekUnlocked }
+
+    private func isUnlocked(_ skin: PetSkin) -> Bool {
+        switch skin {
+        case .classic: return true
+        case .claude: return claudeUnlocked
+        case .pika: return pikaUnlocked
+        case .reek: return reekUnlocked
+        }
+    }
+
     private var effectiveSkin: PetSkin {
-        selectedSkin == .claude && claudeUnlocked ? .claude : .classic
+        isUnlocked(selectedSkin) ? selectedSkin : .classic
+    }
+
+    private var unlockedSkins: [PetSkin] {
+        PetSkin.helpOrder.filter(isUnlocked)
+    }
+
+    private var skinSelection: Binding<String> {
+        Binding(
+            get: { effectiveSkin.rawValue },
+            set: { skinRaw = $0 }
+        )
     }
 
     var body: some View {
@@ -44,16 +73,12 @@ struct MenuContentView: View {
 
             if showingHelp {
                 HelpView(vitals: store.vitals, activeAnimationTier: effectiveAnimationTier,
-                         maxHeight: helpMaxHeight)
+                         showPetUnlocks: petHintsRevealed, activeSkin: effectiveSkin)
+            } else if showingSettings {
+                settingsBody
             } else {
                 statsBody
             }
-
-            Divider()
-
-            backgroundUpdatesRow
-
-            launchAtLoginRow
 
             HStack {
                 Button("Refresh") { store.refresh() }
@@ -64,9 +89,17 @@ struct MenuContentView: View {
         .padding(Metric.content)
         .frame(minWidth: 264, idealWidth: 264, maxWidth: 320)
         .fixedSize(horizontal: false, vertical: true)
+        .onChange(of: showingHelp) { _, showing in
+            if !showing { petHintsRevealed = false }
+        }
         .onAppear {
             showingHelp = startShowingHelp
+            showingSettings = startShowingSettings
+            petHintsRevealed = false
             store.setActive(true)
+            poller.refresh()
+            loginItem.refresh()
+            statusline.enableIfNeeded()
         }
         .onDisappear { store.setActive(false) }
     }
@@ -74,9 +107,13 @@ struct MenuContentView: View {
     private var header: some View {
         HStack {
             Text("Tokengochi").font(.headline)
+                .onTapGesture(perform: registerTitleTap)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHint("Something might happen if you're quick about it")
             Spacer()
             Button {
                 showingHelp.toggle()
+                if showingHelp { showingSettings = false }
             } label: {
                 Image(systemName: showingHelp ? "questionmark.circle.fill" : "questionmark.circle")
             }
@@ -84,6 +121,44 @@ struct MenuContentView: View {
             .foregroundStyle(showingHelp ? Color.accentColor : .secondary)
             .accessibilityLabel(showingHelp ? "Close help" : "Help")
             .accessibilityHint("Explains moods, vitals, and mechanics")
+
+            Button {
+                showingSettings.toggle()
+                if showingSettings { showingHelp = false }
+            } label: {
+                Image(systemName: showingSettings ? "gearshape.fill" : "gearshape")
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(showingSettings ? Color.accentColor : .secondary)
+            .accessibilityLabel(showingSettings ? "Close settings" : "Settings")
+            .accessibilityHint("Configure background updates, statusline, and launch at login")
+        }
+    }
+
+    private func registerTitleTap() {
+        let now = Date()
+        titleTapCount = now.timeIntervalSince(lastTitleTapAt) <= 1.0 ? titleTapCount + 1 : 1
+        lastTitleTapAt = now
+        guard titleTapCount >= 5 else { return }
+        titleTapCount = 0
+        petHintsRevealed = true
+        showingSettings = false
+        showingHelp = true
+    }
+
+    private var settingsBody: some View {
+        VStack(alignment: .leading, spacing: Metric.lg) {
+            petPickerRow
+
+            animationUnlockRow
+
+            Divider()
+
+            backgroundUpdatesRow
+
+            statuslineRow
+
+            launchAtLoginRow
         }
     }
 
@@ -110,6 +185,31 @@ struct MenuContentView: View {
             }
         }
         .onAppear { poller.refresh() }
+    }
+
+    private var statuslineRow: some View {
+        VStack(alignment: .leading, spacing: Metric.xs) {
+            Toggle(isOn: Binding(
+                get: { statusline.isEnabled },
+                set: { statusline.setEnabled($0) }
+            )) {
+                Label("Statusline writer", systemImage: "text.insert")
+                    .font(.system(.caption, design: .monospaced))
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+
+            if let error = statusline.lastError {
+                Text(error)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            } else {
+                Text("Captures model, reasoning & context from Claude Code's statusline. Chains to your existing statusline.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .onAppear { statusline.enableIfNeeded() }
     }
 
     private var launchAtLoginRow: some View {
@@ -171,8 +271,6 @@ struct MenuContentView: View {
         VStack(alignment: .leading, spacing: Metric.lg) {
             CreatureView(vitals: store.vitals, skin: effectiveSkin, animationTier: effectiveAnimationTier)
 
-            petPickerRow
-
             VStack(spacing: Metric.sm) {
                 statRow("Session", store.vitals.session, detail: store.sessionResetText)
                 statRow("Weekly", store.vitals.weekly, detail: store.weeklyResetText)
@@ -191,8 +289,6 @@ struct MenuContentView: View {
 
             sessionInfoRows
 
-            animationUnlockRow
-
             Text(store.freshnessText)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -200,48 +296,21 @@ struct MenuContentView: View {
     }
 
     private var petPickerRow: some View {
-        VStack(alignment: .leading, spacing: Metric.xs) {
-            HStack(spacing: Metric.sm) {
-                Label("Pet", systemImage: "pawprint.fill")
-                Spacer()
-                skinButton(.classic)
-                skinButton(.claude)
+        HStack {
+            Label("Pet", systemImage: "pawprint.fill")
+            Spacer()
+            Picker("Pet", selection: skinSelection) {
+                ForEach(unlockedSkins, id: \.self) { skin in
+                    Text(skin.displayName).tag(skin.rawValue)
+                }
             }
-            .font(.system(.caption, design: .monospaced))
-
-            if !claudeUnlocked {
-                Text("Claude unlocks at \(Int(PetSkin.claude.unlockThreshold))% weekly peak")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .fixedSize()
         }
+        .font(.system(.caption, design: .monospaced))
         .accessibilityElement(children: .contain)
-    }
-
-    @ViewBuilder
-    private func skinButton(_ skin: PetSkin) -> some View {
-        let locked = skin == .claude && !claudeUnlocked
-        let isSelected = effectiveSkin == skin
-        Button {
-            skinRaw = skin.rawValue
-        } label: {
-            HStack(spacing: Metric.xs) {
-                if locked { Image(systemName: "lock.fill") }
-                Text(skin.displayName)
-            }
-            .font(.system(.caption, design: .monospaced))
-            .padding(.horizontal, Metric.sm)
-            .padding(.vertical, Metric.xs)
-            .background(isSelected ? Color.accentColor.opacity(0.22) : Color.secondary.opacity(0.12),
-                        in: Capsule())
-            .overlay(Capsule().strokeBorder(isSelected ? Color.accentColor : .clear, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .disabled(locked)
-        .foregroundStyle(locked ? Color.secondary : .primary)
-        .accessibilityLabel("\(skin.displayName) pet")
-        .accessibilityValue(locked ? "locked" : (isSelected ? "selected" : "not selected"))
-        .accessibilityHint(locked ? "Reach \(Int(PetSkin.claude.unlockThreshold)) percent weekly usage to unlock" : "")
+        .accessibilityLabel("Pet")
     }
 
     @ViewBuilder
@@ -282,32 +351,19 @@ struct MenuContentView: View {
     }
 
     private var animationUnlockRow: some View {
-        let vitals = store.vitals
-        return VStack(alignment: .leading, spacing: Metric.xs) {
-            HStack {
-                Label("Animations", systemImage: "sparkles")
-                Spacer()
-                Picker("Animations", selection: animationSelection) {
-                    ForEach(unlockedTiers, id: \.self) { tier in
-                        Text(tier.displayName).tag(tier.rawValue)
-                    }
+        HStack {
+            Label("Animations", systemImage: "sparkles")
+            Spacer()
+            Picker("Animations", selection: animationSelection) {
+                ForEach(unlockedTiers, id: \.self) { tier in
+                    Text(tier.displayName).tag(tier.rawValue)
                 }
-                .pickerStyle(.menu)
-                .labelsHidden()
-                .fixedSize()
             }
-            .font(.system(.caption, design: .monospaced))
-
-            if let next = vitals.nextAnimationUnlock {
-                Text("next: \(next.tier.displayName) at \(Int(next.threshold))% weekly")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("all animations unlocked ✨")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .fixedSize()
         }
+        .font(.system(.caption, design: .monospaced))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Animations")
     }

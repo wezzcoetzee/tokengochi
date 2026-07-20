@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  html { background: {{BG2}}; }
+  body.{{FRAME_CLASS}} {
+    background: linear-gradient(165deg, {{BG1}} 0%, {{BG2}} 100%);
+    color: {{TEXT}};
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6vw;
+    padding: 0 7vw;
+  }
+  .copy { max-width: 46vw; }
+  h1 { font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; font-size: 4.6vw; }
+  h2 { font-weight: 500; opacity: 0.75; line-height: 1.35; font-size: 2.1vw; margin-top: 1.4vw; }
+  .device {
+    height: 88vh;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1.5vw 4vw rgba(0, 0, 0, 0.55));
+  }
+  .device img { display: block; height: 100%; width: auto; }
+</style>
+</head>
+<body class="{{FRAME_CLASS}}">
+  <div class="copy">
+    <h1>{{HEADLINE}}</h1>
+    <h2>{{SUBHEADLINE}}</h2>
+  </div>
+  <div class="device"><img src="shot.png" alt=""></div>
+</body>
+</html>

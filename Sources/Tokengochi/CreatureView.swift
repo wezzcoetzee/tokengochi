@@ -80,7 +80,7 @@ struct CreatureView: View {
                     creatureCanvas(blink: motion.blink)
                         .scaleEffect(x: motion.scaleX, y: motion.scaleY, anchor: .bottom)
                         .rotationEffect(.degrees(motion.rotation), anchor: .bottom)
-                        .offset(y: motion.offsetY)
+                        .offset(x: motion.offsetX, y: motion.offsetY)
                 }
                 .frame(height: Metric.screenSpriteBand)
             }
@@ -211,6 +211,7 @@ private struct WastedBanner: View {
 }
 
 private struct SpriteMotion {
+    var offsetX: Double = 0
     var offsetY: Double = 0
     var scaleX: Double = 1
     var scaleY: Double = 1
@@ -239,6 +240,10 @@ private struct SpriteMotion {
         }
         if tier.includes(.sparkling) {
             sparklePhase = time
+        }
+        if tier.includes(.adhd) {
+            offsetX += sin(time * 24) * 6
+            offsetY += cos(time * 31) * 6
         }
     }
 }

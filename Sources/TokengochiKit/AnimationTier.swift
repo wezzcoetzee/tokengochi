@@ -7,6 +7,7 @@ public enum AnimationTier: Int, CaseIterable, Comparable {
     case swaying = 3
     case bouncing = 4
     case sparkling = 5
+    case adhd = 6
 
     public static func < (lhs: AnimationTier, rhs: AnimationTier) -> Bool {
         lhs.rawValue < rhs.rawValue
@@ -20,6 +21,7 @@ public enum AnimationTier: Int, CaseIterable, Comparable {
         case .swaying: return 40
         case .bouncing: return 60
         case .sparkling: return 80
+        case .adhd: return 99
         }
     }
 
@@ -31,6 +33,7 @@ public enum AnimationTier: Int, CaseIterable, Comparable {
         case .swaying: return "Sway"
         case .bouncing: return "Bounce"
         case .sparkling: return "Sparkle"
+        case .adhd: return "ADHD"
         }
     }
 

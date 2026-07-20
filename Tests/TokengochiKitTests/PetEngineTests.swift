@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import TokengochiKit
 
@@ -125,6 +126,27 @@ private func now(atFraction f: Double) -> Double {
         #expect(state.peakWeekly == 0)
         #expect(state.unlockFloor == 60)
         #expect(vitals.animationTier == .dormant)
+    }
+
+    @Test func deathUnlocksReekAndSurvivesRevival() {
+        var state = PetState(poops: 5)
+        let dead = PetEngine.update(snapshot: snapshot(session: 10, weekly: 60), state: &state)
+
+        #expect(dead.isDead)
+        #expect(dead.reekUnlocked)
+        #expect(state.hasDiedOnce)
+
+        PetEngine.revive(state: &state)
+        let revived = PetEngine.update(snapshot: snapshot(session: 50, weekly: 60), state: &state)
+        #expect(!revived.isDead)
+        #expect(revived.reekUnlocked)
+        #expect(state.hasDiedOnce)
+    }
+
+    @Test func reekLockedUntilFirstDeath() {
+        var state = PetState()
+        let vitals = PetEngine.update(snapshot: snapshot(session: 50, weekly: 60), state: &state)
+        #expect(!vitals.reekUnlocked)
     }
 
     @Test func deadPetIsFrozenUntilRevived() {
@@ -305,5 +327,62 @@ private func now(atFraction f: Double) -> Double {
         #expect(earlyVitals.mood == .overfed)
         #expect(lateVitals.mood == .overfed)
         #expect(earlyVitals.happiness < lateVitals.happiness)
+    }
+
+    @Test func pikaUnlocksOnHighSessionEarlyInWindow() {
+        var state = PetState(lastSessionResetsAt: windowEnd)
+        let vitals = PetEngine.update(
+            snapshot: snapshot(session: 90, sessionResetsAt: windowEnd, updatedAt: now(atFraction: 0.1)),
+            state: &state)
+
+        #expect(vitals.pikaUnlocked)
+        #expect(state.pikaUnlocked)
+    }
+
+    @Test func pikaDoesNotUnlockOnHighSessionLateInWindow() {
+        var state = PetState(lastSessionResetsAt: windowEnd)
+        let vitals = PetEngine.update(
+            snapshot: snapshot(session: 90, sessionResetsAt: windowEnd, updatedAt: now(atFraction: 0.4)),
+            state: &state)
+
+        #expect(!vitals.pikaUnlocked)
+        #expect(!state.pikaUnlocked)
+    }
+
+    @Test func pikaDoesNotUnlockAtExactlyEightyPercentEarly() {
+        var state = PetState(lastSessionResetsAt: windowEnd)
+        let vitals = PetEngine.update(
+            snapshot: snapshot(session: 80, sessionResetsAt: windowEnd, updatedAt: now(atFraction: 0.1)),
+            state: &state)
+
+        #expect(!vitals.pikaUnlocked)
+        #expect(!state.pikaUnlocked)
+    }
+
+    @Test func pikaStaysUnlockedOnLaterLowSessionTicks() {
+        var state = PetState(lastSessionResetsAt: windowEnd, pikaUnlocked: true)
+        let vitals = PetEngine.update(
+            snapshot: snapshot(session: 10, sessionResetsAt: windowEnd, updatedAt: now(atFraction: 0.9)),
+            state: &state)
+
+        #expect(vitals.pikaUnlocked)
+        #expect(state.pikaUnlocked)
+    }
+
+    @Test func deathResetsPikaUnlocked() {
+        var state = PetState(poops: 10, pikaUnlocked: true)
+        let vitals = PetEngine.update(snapshot: snapshot(session: 50, weekly: 50), state: &state)
+
+        #expect(vitals.isDead)
+        #expect(!state.pikaUnlocked)
+    }
+
+    @Test func petStateWithoutPikaUnlockedKeyDecodesFalse() throws {
+        let json = """
+        {"poops":0,"windowPeakSession":0,"windowCleaned":false,"peakWeekly":0,"isDead":false,"unlockFloor":0}
+        """.data(using: .utf8)!
+        let state = try JSONDecoder().decode(PetState.self, from: json)
+
+        #expect(!state.pikaUnlocked)
     }
 }
