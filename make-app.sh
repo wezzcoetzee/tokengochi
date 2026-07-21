@@ -18,6 +18,10 @@ APP="$WORK/$APP_NAME.app"
 CONTENTS="$APP/Contents"
 
 echo "▸ Building release binaries…"
+# Swift's precompiled modules embed the absolute ModuleCache path. A checkout
+# moved or restored from another directory can therefore leave an unusable
+# .build cache behind, so packaging always starts with a clean SwiftPM build.
+swift package clean
 swift build -c release
 
 echo "▸ Assembling $APP_NAME.app…"
