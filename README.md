@@ -71,6 +71,17 @@ This builds the release binaries, assembles `dist/Tokengochi.app`, ad-hoc signs 
 
 To give it an icon, drop a 1024×1024 `AppIcon.png` in the repo root; the script generates `AppIcon.icns` from it on the next run (or commit your own `AppIcon.icns` directly).
 
+### GitHub releases
+
+Push a version tag on a commit containing `.github/workflows/release.yml` to publish a release:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The [shared macOS release workflow](https://github.com/wezzcoetzee/.github/blob/main/.github/workflows/macos-release.yml) runs `./make-app.sh "$VERSION"` on `macos-26`, using the tag without its leading `v` as `VERSION`. It uploads the DMG and ZIP from `dist/` to a GitHub Release with generated release notes. To rerun manually, select an existing tag with `gh workflow run release.yml --ref v0.1.0`; branch runs are rejected. Reruns replace matching release assets and preserve existing release notes.
+
 Because the app is ad-hoc signed rather than notarized, the first launch on someone else's Mac is blocked by Gatekeeper — regardless of whether they got the `.dmg` or the `.zip`. They open it once via **right-click → Open → Open** (or System Settings → Privacy & Security → "Open Anyway"); after that it launches normally. For zero-warning distribution you'd need a paid Apple Developer ID plus notarization.
 
 ## Wire up the statusline writer
