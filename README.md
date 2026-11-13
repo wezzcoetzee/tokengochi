@@ -8,6 +8,16 @@ A macOS menu-bar virtual pet that *is* your Claude usage. Session usage feeds it
   <img src="assets/screenshot-claude.png" width="280" alt="Claude skin" />
 </p>
 
+## Install
+
+Download the DMG from [Releases](https://github.com/wezzcoetzee/tokengochi/releases) and drag Tokengochi to Applications.
+
+The app is not notarized, so the first launch shows "Apple could not verify Tokengochi". Click Done, then open System Settings, Privacy & Security, and click Open Anyway next to Tokengochi. Or clear the quarantine flag:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Tokengochi.app
+```
+
 ## Architecture
 
 ```
