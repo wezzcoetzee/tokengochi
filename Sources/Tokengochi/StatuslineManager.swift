@@ -37,7 +37,8 @@ final class StatuslineManager: ObservableObject {
     func enableIfNeeded() {
         refresh()
         guard !isEnabled, !optedOut,
-              fileManager.fileExists(atPath: configDirectory.path) else { return }
+            fileManager.fileExists(atPath: configDirectory.path)
+        else { return }
         setEnabled(true)
     }
 
@@ -72,20 +73,24 @@ final class StatuslineManager: ObservableObject {
         let settings = try loadSettings()
         var passthroughPath: String?
         if let existing = StatuslineWiring.command(inSettings: settings),
-           !existing.contains(StatuslineWiring.writerMarker),
-           existing != wrapperFile.path {
+            !existing.contains(StatuslineWiring.writerMarker),
+            existing != wrapperFile.path
+        {
             try write(StatuslineWiring.passthroughScript(preserving: existing), to: passthroughFile)
             passthroughPath = passthroughFile.path
         } else if fileManager.fileExists(atPath: passthroughFile.path) {
             passthroughPath = passthroughFile.path
         }
 
-        try write(StatuslineWiring.wrapperScript(writerPath: writerFile.path,
-                                                 passthroughPath: passthroughPath),
-                  to: wrapperFile)
+        try write(
+            StatuslineWiring.wrapperScript(
+                writerPath: writerFile.path,
+                passthroughPath: passthroughPath),
+            to: wrapperFile)
 
         if fileManager.fileExists(atPath: settingsFile.path),
-           !fileManager.fileExists(atPath: backupFile.path) {
+            !fileManager.fileExists(atPath: backupFile.path)
+        {
             try fileManager.copyItem(at: settingsFile, to: backupFile)
         }
         try save(StatuslineWiring.settings(settings, pointingAt: wrapperFile.path))
@@ -93,12 +98,17 @@ final class StatuslineManager: ObservableObject {
 
     private func unwire() throws {
         let settings = try loadSettings()
-        guard StatuslineWiring.isWired(command: StatuslineWiring.command(inSettings: settings), scriptContents: { path in
-            try? String(contentsOf: URL(fileURLWithPath: path), encoding: .utf8)
-        }) else { return }
+        guard
+            StatuslineWiring.isWired(
+                command: StatuslineWiring.command(inSettings: settings),
+                scriptContents: { path in
+                    try? String(contentsOf: URL(fileURLWithPath: path), encoding: .utf8)
+                })
+        else { return }
 
         if let script = try? String(contentsOf: passthroughFile, encoding: .utf8),
-           let preserved = StatuslineWiring.preservedCommand(inPassthroughScript: script) {
+            let preserved = StatuslineWiring.preservedCommand(inPassthroughScript: script)
+        {
             try save(StatuslineWiring.settings(settings, pointingAt: preserved))
         } else {
             try save(StatuslineWiring.settingsRemovingStatusline(settings))
@@ -120,8 +130,9 @@ final class StatuslineManager: ObservableObject {
     }
 
     private func save(_ settings: [String: Any]) throws {
-        let data = try JSONSerialization.data(withJSONObject: settings,
-                                              options: [.prettyPrinted, .sortedKeys])
+        let data = try JSONSerialization.data(
+            withJSONObject: settings,
+            options: [.prettyPrinted, .sortedKeys])
         try data.write(to: settingsFile, options: .atomic)
     }
 

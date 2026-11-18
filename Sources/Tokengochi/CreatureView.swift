@@ -71,8 +71,9 @@ struct CreatureView: View {
                 .frame(height: Metric.screenSpriteBand)
         } else {
             TimelineView(.animation) { timeline in
-                let motion = SpriteMotion(tier: activeTier,
-                                          time: timeline.date.timeIntervalSinceReferenceDate)
+                let motion = SpriteMotion(
+                    tier: activeTier,
+                    time: timeline.date.timeIntervalSinceReferenceDate)
                 ZStack {
                     if let sparklePhase = motion.sparklePhase {
                         sparkles(phase: sparklePhase)
@@ -98,8 +99,9 @@ struct CreatureView: View {
             let oy = (size.height - spriteH) / 2
 
             func fill(_ c: Int, _ r: Int, _ color: Color) {
-                let rect = CGRect(x: ox + Double(c) * cell, y: oy + Double(r) * cell,
-                                  width: cell + 0.6, height: cell + 0.6)
+                let rect = CGRect(
+                    x: ox + Double(c) * cell, y: oy + Double(r) * cell,
+                    width: cell + 0.6, height: cell + 0.6)
                 context.fill(Path(rect), with: .color(color))
             }
 
@@ -135,30 +137,33 @@ struct CreatureView: View {
             var cross = Path()
             cross.move(to: CGPoint(x: x0, y: y0)); cross.addLine(to: CGPoint(x: x1, y: y1))
             cross.move(to: CGPoint(x: x1, y: y0)); cross.addLine(to: CGPoint(x: x0, y: y1))
-            context.stroke(cross, with: .color(lcdBackground),
-                           style: StrokeStyle(lineWidth: cell * 0.7, lineCap: .round))
+            context.stroke(
+                cross, with: .color(lcdBackground),
+                style: StrokeStyle(lineWidth: cell * 0.7, lineCap: .round))
         }
 
         var mouth = Path()
         let mouthY = oy + 9 * cell + cell / 2
         mouth.move(to: CGPoint(x: ox + 6 * cell, y: mouthY))
         mouth.addLine(to: CGPoint(x: ox + 10 * cell, y: mouthY))
-        context.stroke(mouth, with: .color(lcdBackground),
-                       style: StrokeStyle(lineWidth: cell * 0.6, lineCap: .round))
+        context.stroke(
+            mouth, with: .color(lcdBackground),
+            style: StrokeStyle(lineWidth: cell * 0.6, lineCap: .round))
     }
 
     private func sparkles(phase: Double) -> some View {
         Canvas { context, size in
             let spots: [(x: Double, y: Double, offset: Double)] = [
-                (0.12, 0.20, 0.0), (0.88, 0.26, 1.3), (0.22, 0.78, 2.2), (0.82, 0.72, 0.8)
+                (0.12, 0.20, 0.0), (0.88, 0.26, 1.3), (0.22, 0.78, 2.2), (0.82, 0.72, 0.8),
             ]
             for spot in spots {
                 let twinkle = (sin(phase * 3 + spot.offset) + 1) / 2
                 guard twinkle > 0.45 else { continue }
                 let radius = 1.4 + twinkle * 1.8
                 let center = CGPoint(x: spot.x * size.width, y: spot.y * size.height)
-                let rect = CGRect(x: center.x - radius, y: center.y - radius,
-                                  width: radius * 2, height: radius * 2)
+                let rect = CGRect(
+                    x: center.x - radius, y: center.y - radius,
+                    width: radius * 2, height: radius * 2)
                 context.fill(Path(ellipseIn: rect), with: .color(Phosphor.accent(for: skin).opacity(twinkle)))
             }
         }
@@ -190,7 +195,7 @@ private struct WastedBanner: View {
         CGSize(width: -1.5, height: 0), CGSize(width: 1.5, height: 0),
         CGSize(width: 0, height: -1.5), CGSize(width: 0, height: 1.5),
         CGSize(width: -1.5, height: -1.5), CGSize(width: 1.5, height: -1.5),
-        CGSize(width: -1.5, height: 1.5), CGSize(width: 1.5, height: 1.5)
+        CGSize(width: -1.5, height: 1.5), CGSize(width: 1.5, height: 1.5),
     ]
 
     private var text: Text {

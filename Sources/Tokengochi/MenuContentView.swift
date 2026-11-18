@@ -72,8 +72,9 @@ struct MenuContentView: View {
             header
 
             if showingHelp {
-                HelpView(vitals: store.vitals, activeAnimationTier: effectiveAnimationTier,
-                         showPetUnlocks: petHintsRevealed, activeSkin: effectiveSkin)
+                HelpView(
+                    vitals: store.vitals, activeAnimationTier: effectiveAnimationTier,
+                    showPetUnlocks: petHintsRevealed, activeSkin: effectiveSkin)
             } else if showingSettings {
                 settingsBody
             } else {
@@ -164,10 +165,12 @@ struct MenuContentView: View {
 
     private var backgroundUpdatesRow: some View {
         VStack(alignment: .leading, spacing: Metric.xs) {
-            Toggle(isOn: Binding(
-                get: { poller.isEnabled },
-                set: { poller.setEnabled($0) }
-            )) {
+            Toggle(
+                isOn: Binding(
+                    get: { poller.isEnabled },
+                    set: { poller.setEnabled($0) }
+                )
+            ) {
                 Label("Background updates", systemImage: "arrow.triangle.2.circlepath")
                     .font(.system(.caption, design: .monospaced))
             }
@@ -189,10 +192,12 @@ struct MenuContentView: View {
 
     private var statuslineRow: some View {
         VStack(alignment: .leading, spacing: Metric.xs) {
-            Toggle(isOn: Binding(
-                get: { statusline.isEnabled },
-                set: { statusline.setEnabled($0) }
-            )) {
+            Toggle(
+                isOn: Binding(
+                    get: { statusline.isEnabled },
+                    set: { statusline.setEnabled($0) }
+                )
+            ) {
                 Label("Statusline writer", systemImage: "text.insert")
                     .font(.system(.caption, design: .monospaced))
             }
@@ -214,10 +219,12 @@ struct MenuContentView: View {
 
     private var launchAtLoginRow: some View {
         VStack(alignment: .leading, spacing: Metric.xs) {
-            Toggle(isOn: Binding(
-                get: { loginItem.isEnabled },
-                set: { loginItem.setEnabled($0) }
-            )) {
+            Toggle(
+                isOn: Binding(
+                    get: { loginItem.isEnabled },
+                    set: { loginItem.setEnabled($0) }
+                )
+            ) {
                 Label("Launch at login", systemImage: "power")
                     .font(.system(.caption, design: .monospaced))
             }
@@ -249,10 +256,12 @@ struct MenuContentView: View {
             VStack(alignment: .leading, spacing: Metric.sm) {
                 Text("Your Tokengochi died.")
                     .font(.system(.callout, design: .monospaced)).bold()
-                Text("Too many uncleaned messes drained its health to zero. Reviving starts it over and resets every unlocked animation and skin — you'll re-earn them through new Claude usage.")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "Too many uncleaned messes drained its health to zero. Reviving starts it over and resets every unlocked animation and skin — you'll re-earn them through new Claude usage."
+                )
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             }
 
             Button {

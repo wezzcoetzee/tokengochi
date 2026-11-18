@@ -1,13 +1,17 @@
 import Testing
+
 @testable import TokengochiKit
 
-private func previous(session: Double? = 40, weekly: Double? = 60, context: Double? = 30,
-                      sessionResets: Double? = 1000, weeklyResets: Double? = 2000,
-                      model: String? = "Opus", effort: String? = "high",
-                      fast: Bool? = true) -> UsageSnapshot {
-    UsageSnapshot(sessionPct: session, weeklyPct: weekly, contextPct: context,
-                  sessionResetsAt: sessionResets, weeklyResetsAt: weeklyResets,
-                  model: model, effortLevel: effort, fastMode: fast, updatedAt: 0)
+private func previous(
+    session: Double? = 40, weekly: Double? = 60, context: Double? = 30,
+    sessionResets: Double? = 1000, weeklyResets: Double? = 2000,
+    model: String? = "Opus", effort: String? = "high",
+    fast: Bool? = true
+) -> UsageSnapshot {
+    UsageSnapshot(
+        sessionPct: session, weeklyPct: weekly, contextPct: context,
+        sessionResetsAt: sessionResets, weeklyResetsAt: weeklyResets,
+        model: model, effortLevel: effort, fastMode: fast, updatedAt: 0)
 }
 
 @Suite struct SnapshotMergeTests {

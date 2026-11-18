@@ -10,7 +10,8 @@ public enum StatuslineWiring {
 
     public static func command(inSettings settings: [String: Any]) -> String? {
         guard let statusLine = settings["statusLine"] as? [String: Any],
-              statusLine["type"] as? String == "command" else { return nil }
+            statusLine["type"] as? String == "command"
+        else { return nil }
         return statusLine["command"] as? String
     }
 
@@ -38,7 +39,8 @@ public enum StatuslineWiring {
     }
 
     public static func preservedCommand(inPassthroughScript script: String) -> String? {
-        let body = script
+        let body =
+            script
             .split(separator: "\n", omittingEmptySubsequences: true)
             .filter { !$0.hasPrefix("#!") }
             .joined(separator: "\n")

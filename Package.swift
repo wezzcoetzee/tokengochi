@@ -9,6 +9,6 @@ let package = Package(
         .executableTarget(name: "Tokengochi", dependencies: ["TokengochiKit"]),
         .executableTarget(name: "TokengochiWriter", dependencies: ["TokengochiKit"]),
         .executableTarget(name: "TokengochiPoller", dependencies: ["TokengochiKit"]),
-        .testTarget(name: "TokengochiKitTests", dependencies: ["TokengochiKit"])
+        .testTarget(name: "TokengochiKitTests", dependencies: ["TokengochiKit"]),
     ]
 )

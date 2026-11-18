@@ -92,22 +92,26 @@ public struct Vitals {
     public let pikaUnlocked: Bool
     public let reekUnlocked: Bool
 
-    public static func noData(poops: Int, health: Int, peakWeekly: Double,
-                              pikaUnlocked: Bool, reekUnlocked: Bool) -> Vitals {
-        Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
-               health: health, poops: poops,
-               mood: .noData, sessionMood: .noData, weight: 0, hasData: false,
-               animationTier: AnimationTier.unlocked(forPeakWeekly: peakWeekly),
-               peakWeekly: peakWeekly, isDead: false, pikaUnlocked: pikaUnlocked,
-               reekUnlocked: reekUnlocked)
+    public static func noData(
+        poops: Int, health: Int, peakWeekly: Double,
+        pikaUnlocked: Bool, reekUnlocked: Bool
+    ) -> Vitals {
+        Vitals(
+            session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
+            health: health, poops: poops,
+            mood: .noData, sessionMood: .noData, weight: 0, hasData: false,
+            animationTier: AnimationTier.unlocked(forPeakWeekly: peakWeekly),
+            peakWeekly: peakWeekly, isDead: false, pikaUnlocked: pikaUnlocked,
+            reekUnlocked: reekUnlocked)
     }
 
     public static func dead(poops: Int, reekUnlocked: Bool) -> Vitals {
-        Vitals(session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
-               health: 0, poops: poops,
-               mood: .sick, sessionMood: .sick, weight: 0, hasData: true,
-               animationTier: .dormant, peakWeekly: 0, isDead: true, pikaUnlocked: false,
-               reekUnlocked: reekUnlocked)
+        Vitals(
+            session: 0, weekly: 0, context: 0, hunger: 100, happiness: 0,
+            health: 0, poops: poops,
+            mood: .sick, sessionMood: .sick, weight: 0, hasData: true,
+            animationTier: .dormant, peakWeekly: 0, isDead: true, pikaUnlocked: false,
+            reekUnlocked: reekUnlocked)
     }
 
     public var nextAnimationUnlock: (tier: AnimationTier, threshold: Double)? {
@@ -127,7 +131,7 @@ public struct Vitals {
         var parts = [
             "Tokengochi: \(mood.spokenName)",
             "fed \(fedTenths) of 10",
-            "happiness \(happinessTenths) of 10"
+            "happiness \(happinessTenths) of 10",
         ]
         if poops > 0 {
             parts.append(poops == 1 ? "1 mess to clean up" : "\(poops) messes to clean up")
@@ -161,11 +165,12 @@ public enum PetEngine {
         if state.isDead { return .dead(poops: state.poops, reekUnlocked: state.hasDiedOnce) }
 
         guard let snapshot, let rawSession = snapshot.sessionPct else {
-            return Vitals.noData(poops: state.poops,
-                                 health: health(forPoops: state.poops),
-                                 peakWeekly: state.peakWeekly,
-                                 pikaUnlocked: state.pikaUnlocked,
-                                 reekUnlocked: state.hasDiedOnce)
+            return Vitals.noData(
+                poops: state.poops,
+                health: health(forPoops: state.poops),
+                peakWeekly: state.peakWeekly,
+                pikaUnlocked: state.pikaUnlocked,
+                reekUnlocked: state.hasDiedOnce)
         }
 
         let clamp = { (value: Double) in min(100, max(0, value)) }
@@ -211,32 +216,47 @@ public enum PetEngine {
         }
 
         let mood: Mood
-        if currentHealth < Int(sickHealthThreshold) { mood = .sick }
-        else if overfed { mood = .overfed }
-        else if happiness >= thrivingHappinessThreshold { mood = .thriving }
-        else if happiness >= okayHappinessThreshold { mood = .okay }
-        else if behindPace { mood = .starving }
-        else { mood = .lonely }
+        if currentHealth < Int(sickHealthThreshold) {
+            mood = .sick
+        } else if overfed {
+            mood = .overfed
+        } else if happiness >= thrivingHappinessThreshold {
+            mood = .thriving
+        } else if happiness >= okayHappinessThreshold {
+            mood = .okay
+        } else if behindPace {
+            mood = .starving
+        } else {
+            mood = .lonely
+        }
 
         let sessionMood: Mood
-        if currentHealth < Int(sickHealthThreshold) { sessionMood = .sick }
-        else if overfed { sessionMood = .overfed }
-        else if session >= thrivingHappinessThreshold { sessionMood = .thriving }
-        else if session >= okayHappinessThreshold { sessionMood = .okay }
-        else if behindPace { sessionMood = .starving }
-        else { sessionMood = .lonely }
+        if currentHealth < Int(sickHealthThreshold) {
+            sessionMood = .sick
+        } else if overfed {
+            sessionMood = .overfed
+        } else if session >= thrivingHappinessThreshold {
+            sessionMood = .thriving
+        } else if session >= okayHappinessThreshold {
+            sessionMood = .okay
+        } else if behindPace {
+            sessionMood = .starving
+        } else {
+            sessionMood = .lonely
+        }
 
         let baseWeight = min(0.7, weekly / 100 * 0.7)
         let weight = min(1.0, baseWeight + (overfed ? overfedSeverity * 0.3 : 0))
 
-        return Vitals(session: session, weekly: weekly, context: context,
-                      hunger: hunger, happiness: happiness, health: currentHealth,
-                      poops: state.poops, mood: mood, sessionMood: sessionMood,
-                      weight: weight, hasData: true,
-                      animationTier: AnimationTier.unlocked(forPeakWeekly: state.peakWeekly),
-                      peakWeekly: state.peakWeekly, isDead: false,
-                      pikaUnlocked: state.pikaUnlocked,
-                      reekUnlocked: state.hasDiedOnce)
+        return Vitals(
+            session: session, weekly: weekly, context: context,
+            hunger: hunger, happiness: happiness, health: currentHealth,
+            poops: state.poops, mood: mood, sessionMood: sessionMood,
+            weight: weight, hasData: true,
+            animationTier: AnimationTier.unlocked(forPeakWeekly: state.peakWeekly),
+            peakWeekly: state.peakWeekly, isDead: false,
+            pikaUnlocked: state.pikaUnlocked,
+            reekUnlocked: state.hasDiedOnce)
     }
 
     public static func revive(state: inout PetState) {

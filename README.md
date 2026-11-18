@@ -83,7 +83,7 @@ To give it an icon, drop a 1024×1024 `AppIcon.png` in the repo root; the script
 
 ### GitHub releases
 
-Pull requests and pushes to `main` run the tests (and `swift format lint` when a `.swift-format` config exists) through the [shared macOS CI workflow](https://github.com/wezzcoetzee/.github/blob/main/.github/workflows/macos-ci.yml).
+Pull requests and pushes to `main` run `swift format lint --strict` and the tests through the [shared macOS CI workflow](https://github.com/wezzcoetzee/.github/blob/main/.github/workflows/macos-ci.yml). Run `swift format format -i -r .` to fix formatting before pushing.
 
 Push a version tag on a commit containing `.github/workflows/release.yml` to publish a release:
 

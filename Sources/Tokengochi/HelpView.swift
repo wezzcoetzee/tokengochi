@@ -48,8 +48,10 @@ struct HelpView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func legendSection<Content: View>(_ title: String,
-                                               @ViewBuilder content: () -> Content) -> some View {
+    private func legendSection<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         VStack(alignment: .leading, spacing: Metric.sm) {
             Text(title.uppercased())
                 .font(.system(.caption2, design: .monospaced))
@@ -61,15 +63,17 @@ struct HelpView: View {
 
     private func moodRow(_ mood: Mood) -> some View {
         let active = vitals.hasData && vitals.mood == mood
-        return row(emoji: mood.emoji,
-                   title: mood.rawValue,
-                   condition: mood.helpCondition,
-                   detail: mood.helpDescription,
-                   active: active)
+        return row(
+            emoji: mood.emoji,
+            title: mood.rawValue,
+            condition: mood.helpCondition,
+            detail: mood.helpDescription,
+            active: active)
     }
 
     private func skinRow(_ skin: PetSkin) -> some View {
-        row(symbol: "pawprint.fill",
+        row(
+            symbol: "pawprint.fill",
             title: skin.displayName,
             condition: skin.helpCondition,
             detail: skin.helpDescription,
@@ -78,24 +82,27 @@ struct HelpView: View {
 
     private func tierRow(_ tier: AnimationTier) -> some View {
         let active = (activeAnimationTier ?? vitals.animationTier) == tier
-        return row(symbol: "sparkle",
-                   title: tier.displayName,
-                   condition: tier.helpCondition,
-                   detail: nil,
-                   active: active)
+        return row(
+            symbol: "sparkle",
+            title: tier.displayName,
+            condition: tier.helpCondition,
+            detail: nil,
+            active: active)
     }
 
     private func topicRow(_ topic: HelpTopic, active: Bool) -> some View {
-        row(symbol: topic.symbol, title: topic.title, condition: nil,
+        row(
+            symbol: topic.symbol, title: topic.title, condition: nil,
             detail: topic.detail, active: active)
     }
 
-    private func row(emoji: String? = nil, symbol: String? = nil, title: String,
-                     condition: String?, detail: String?, active: Bool) -> some View {
+    private func row(
+        emoji: String? = nil, symbol: String? = nil, title: String,
+        condition: String?, detail: String?, active: Bool
+    ) -> some View {
         HStack(alignment: .top, spacing: Metric.sm) {
             Group {
-                if let emoji { Text(emoji) }
-                else if let symbol { Image(systemName: symbol) }
+                if let emoji { Text(emoji) } else if let symbol { Image(systemName: symbol) }
             }
             .frame(width: 22, alignment: .center)
             .font(.system(size: 14))

@@ -28,7 +28,7 @@ public enum CreatureFace {
         ".##############.",
         "..############..",
         "...###....###...",
-        "..####....####.."
+        "..####....####..",
     ]
 
     private static let claudeBody = [
@@ -43,7 +43,7 @@ public enum CreatureFace {
         "################",
         "################",
         ".##..##..##..##.",
-        ".##..##..##..##."
+        ".##..##..##..##.",
     ]
 
     private static let pikaBody = [
@@ -61,7 +61,7 @@ public enum CreatureFace {
         ".##############.",
         "..############..",
         "...###....###...",
-        "..####....####.."
+        "..####....####..",
     ]
 
     private static let reekBody = [
@@ -77,7 +77,7 @@ public enum CreatureFace {
         "################",
         "################",
         ".##############.",
-        "..############.."
+        "..############..",
     ]
 
     public static func bodyRows(skin: PetSkin) -> [String] {
@@ -94,28 +94,36 @@ public enum CreatureFace {
             if blink {
                 return [FaceCell(4, 6), FaceCell(5, 6), FaceCell(10, 6), FaceCell(11, 6)]
             }
-            return [FaceCell(4, 4), FaceCell(5, 4), FaceCell(4, 5), FaceCell(5, 5), FaceCell(4, 6), FaceCell(5, 6),
-                    FaceCell(10, 4), FaceCell(11, 4), FaceCell(10, 5), FaceCell(11, 5), FaceCell(10, 6), FaceCell(11, 6)]
+            return [
+                FaceCell(4, 4), FaceCell(5, 4), FaceCell(4, 5), FaceCell(5, 5), FaceCell(4, 6), FaceCell(5, 6),
+                FaceCell(10, 4), FaceCell(11, 4), FaceCell(10, 5), FaceCell(11, 5), FaceCell(10, 6), FaceCell(11, 6),
+            ]
         }
         if skin == .reek {
             if blink || mood == .overfed {
                 return [FaceCell(4, 9), FaceCell(5, 9), FaceCell(10, 9), FaceCell(11, 9)]
             }
-            return [FaceCell(4, 8), FaceCell(5, 8), FaceCell(4, 9), FaceCell(5, 9),
-                    FaceCell(10, 8), FaceCell(11, 8), FaceCell(10, 9), FaceCell(11, 9)]
+            return [
+                FaceCell(4, 8), FaceCell(5, 8), FaceCell(4, 9), FaceCell(5, 9),
+                FaceCell(10, 8), FaceCell(11, 8), FaceCell(10, 9), FaceCell(11, 9),
+            ]
         }
         if skin == .pika {
             if blink || mood == .overfed {
                 return [FaceCell(4, 8), FaceCell(5, 8), FaceCell(10, 8), FaceCell(11, 8)]
             }
-            return [FaceCell(4, 7), FaceCell(5, 7), FaceCell(4, 8), FaceCell(5, 8),
-                    FaceCell(10, 7), FaceCell(11, 7), FaceCell(10, 8), FaceCell(11, 8)]
+            return [
+                FaceCell(4, 7), FaceCell(5, 7), FaceCell(4, 8), FaceCell(5, 8),
+                FaceCell(10, 7), FaceCell(11, 7), FaceCell(10, 8), FaceCell(11, 8),
+            ]
         }
         if blink || mood == .overfed {
             return [FaceCell(4, 6), FaceCell(5, 6), FaceCell(10, 6), FaceCell(11, 6)]
         }
-        return [FaceCell(4, 5), FaceCell(5, 5), FaceCell(4, 6), FaceCell(5, 6),
-                FaceCell(10, 5), FaceCell(11, 5), FaceCell(10, 6), FaceCell(11, 6)]
+        return [
+            FaceCell(4, 5), FaceCell(5, 5), FaceCell(4, 6), FaceCell(5, 6),
+            FaceCell(10, 5), FaceCell(11, 5), FaceCell(10, 6), FaceCell(11, 6),
+        ]
     }
 
     public static func mouthCells(skin: PetSkin, mood: Mood) -> [FaceCell] {

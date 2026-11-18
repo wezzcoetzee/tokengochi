@@ -1,4 +1,5 @@
 import Testing
+
 @testable import TokengochiKit
 
 private final class InMemoryStore: SnapshotStore {
@@ -20,8 +21,9 @@ private final class InMemoryStore: SnapshotStore {
 }
 
 private func snapshot(session: Double?, weekly: Double? = 0) -> UsageSnapshot {
-    UsageSnapshot(sessionPct: session, weeklyPct: weekly, contextPct: nil,
-                  sessionResetsAt: nil, weeklyResetsAt: nil, updatedAt: 0)
+    UsageSnapshot(
+        sessionPct: session, weeklyPct: weekly, contextPct: nil,
+        sessionResetsAt: nil, weeklyResetsAt: nil, updatedAt: 0)
 }
 
 @Suite struct PetSessionTests {
@@ -37,8 +39,9 @@ private func snapshot(session: Double?, weekly: Double? = 0) -> UsageSnapshot {
     }
 
     @Test func refreshPersistsStateOnlyWhenChanged() {
-        let store = InMemoryStore(snapshot: snapshot(session: PetEngine.cleanThreshold),
-                                  petState: PetState(poops: 1))
+        let store = InMemoryStore(
+            snapshot: snapshot(session: PetEngine.cleanThreshold),
+            petState: PetState(poops: 1))
         let session = PetSession(store: store)
 
         session.refresh()

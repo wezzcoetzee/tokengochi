@@ -9,13 +9,17 @@ import Foundation
 public enum RateLimitWindow {
     public static func usageEndpoint(_ value: Any?) -> (pct: Double?, resetsAt: Double?) {
         let dict = value as? [String: Any]
-        return (UsageParsing.percentage(dict?["utilization"]),
-                UsageParsing.epochSeconds(dict?["resets_at"]))
+        return (
+            UsageParsing.percentage(dict?["utilization"]),
+            UsageParsing.epochSeconds(dict?["resets_at"])
+        )
     }
 
     public static func statusline(_ value: Any?) -> (pct: Double?, resetsAt: Double?) {
         let dict = value as? [String: Any]
-        return (UsageParsing.number(dict?["used_percentage"]),
-                UsageParsing.epochSeconds(dict?["resets_at"]))
+        return (
+            UsageParsing.number(dict?["used_percentage"]),
+            UsageParsing.epochSeconds(dict?["resets_at"])
+        )
     }
 }
