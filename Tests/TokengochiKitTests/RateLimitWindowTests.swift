@@ -1,4 +1,5 @@
 import Testing
+
 @testable import TokengochiKit
 
 @Suite struct RateLimitWindowTests {

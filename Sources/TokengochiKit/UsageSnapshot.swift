@@ -11,10 +11,12 @@ public struct UsageSnapshot: Codable, Equatable {
     public var fastMode: Bool?
     public var updatedAt: Double
 
-    public init(sessionPct: Double?, weeklyPct: Double?, contextPct: Double?,
-                sessionResetsAt: Double?, weeklyResetsAt: Double?,
-                model: String? = nil, effortLevel: String? = nil, fastMode: Bool? = nil,
-                updatedAt: Double) {
+    public init(
+        sessionPct: Double?, weeklyPct: Double?, contextPct: Double?,
+        sessionResetsAt: Double?, weeklyResetsAt: Double?,
+        model: String? = nil, effortLevel: String? = nil, fastMode: Bool? = nil,
+        updatedAt: Double
+    ) {
         self.sessionPct = sessionPct
         self.weeklyPct = weeklyPct
         self.contextPct = contextPct

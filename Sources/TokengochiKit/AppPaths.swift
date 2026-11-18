@@ -30,7 +30,8 @@ public enum AppPaths {
         let current = baseDirectory.appendingPathComponent(directoryName, isDirectory: true)
         let legacy = baseDirectory.appendingPathComponent(legacyDirectoryName, isDirectory: true)
         guard fileManager.fileExists(atPath: legacy.path),
-              !fileManager.fileExists(atPath: current.path) else { return }
+            !fileManager.fileExists(atPath: current.path)
+        else { return }
         try? fileManager.moveItem(at: legacy, to: current)
     }()
 }

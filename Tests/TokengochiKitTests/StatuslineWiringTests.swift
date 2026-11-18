@@ -1,4 +1,5 @@
 import Testing
+
 @testable import TokengochiKit
 
 @Suite struct StatuslineWiringTests {
@@ -28,14 +29,16 @@ import Testing
     }
 
     @Test func wrapperScriptChainsPassthroughAndQuotesPaths() {
-        let script = StatuslineWiring.wrapperScript(writerPath: "/Applications/My App/Writer",
-                                                    passthroughPath: "/Users/me/.claude/tokengochi-passthrough.sh")
-        #expect(script == """
-        #!/bin/bash
-        export TOKENGOCHI_PASSTHROUGH_CMD='/Users/me/.claude/tokengochi-passthrough.sh'
-        exec '/Applications/My App/Writer'
+        let script = StatuslineWiring.wrapperScript(
+            writerPath: "/Applications/My App/Writer",
+            passthroughPath: "/Users/me/.claude/tokengochi-passthrough.sh")
+        #expect(
+            script == """
+                #!/bin/bash
+                export TOKENGOCHI_PASSTHROUGH_CMD='/Users/me/.claude/tokengochi-passthrough.sh'
+                exec '/Applications/My App/Writer'
 
-        """)
+                """)
     }
 
     @Test func wrapperScriptWithoutPassthroughOmitsExport() {
@@ -55,8 +58,9 @@ import Testing
     }
 
     @Test func settingsUpdatePreservesOtherKeys() {
-        let updated = StatuslineWiring.settings(["model": "opus", "statusLine": ["type": "command", "command": "old"]],
-                                                pointingAt: "/wrapper.sh")
+        let updated = StatuslineWiring.settings(
+            ["model": "opus", "statusLine": ["type": "command", "command": "old"]],
+            pointingAt: "/wrapper.sh")
         #expect(updated["model"] as? String == "opus")
         #expect(StatuslineWiring.command(inSettings: updated) == "/wrapper.sh")
     }

@@ -27,17 +27,17 @@ struct TokengochiApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     #if DEBUG
-    private var screenshotWindow: NSWindow?
+        private var screenshotWindow: NSWindow?
     #endif
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if DEBUG
-        if ScreenshotMode.isEnabled {
-            NSApp.setActivationPolicy(.regular)
-            screenshotWindow = ScreenshotMode.makeWindow()
-            NSApp.activate(ignoringOtherApps: true)
-            return
-        }
+            if ScreenshotMode.isEnabled {
+                NSApp.setActivationPolicy(.regular)
+                screenshotWindow = ScreenshotMode.makeWindow()
+                NSApp.activate(ignoringOtherApps: true)
+                return
+            }
         #endif
         NSApp.setActivationPolicy(.accessory)
     }

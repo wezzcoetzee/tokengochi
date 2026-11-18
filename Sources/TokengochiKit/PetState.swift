@@ -12,12 +12,14 @@ public struct PetState: Codable, Equatable {
     public var pikaUnlocked: Bool
     public var hasDiedOnce: Bool
 
-    public init(poops: Int = 0, lastSessionResetsAt: Double? = nil,
-                windowStartSession: Double? = nil,
-                windowPeakSession: Double = 0, windowCleaned: Bool = false,
-                peakWeekly: Double = 0, isDead: Bool = false,
-                unlockFloor: Double = 0, pikaUnlocked: Bool = false,
-                hasDiedOnce: Bool = false) {
+    public init(
+        poops: Int = 0, lastSessionResetsAt: Double? = nil,
+        windowStartSession: Double? = nil,
+        windowPeakSession: Double = 0, windowCleaned: Bool = false,
+        peakWeekly: Double = 0, isDead: Bool = false,
+        unlockFloor: Double = 0, pikaUnlocked: Bool = false,
+        hasDiedOnce: Bool = false
+    ) {
         self.poops = poops
         self.lastSessionResetsAt = lastSessionResetsAt
         self.windowStartSession = windowStartSession
@@ -46,7 +48,8 @@ public struct PetState: Codable, Equatable {
 
     public static func load() -> PetState {
         guard let data = try? Data(contentsOf: AppPaths.petStateFile),
-              let state = try? JSONDecoder().decode(PetState.self, from: data) else {
+            let state = try? JSONDecoder().decode(PetState.self, from: data)
+        else {
             return PetState()
         }
         return state
